@@ -1,3 +1,12 @@
+/*
+                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+                                
+                                Pedro Avelar Machado                XXXXXXXX
+                                Vinicius Reis Gonçalves             15491921
+*/
+
+//Arquivo 'index.h', contém as definições de função, tipos de dados e valores fixos relacionados ao arquivo de índice
+
 #ifndef INDEX_H
 #define INDEX_H
 
@@ -9,25 +18,23 @@ typedef struct _index_dreg   // Registro de dados do arquivo de índice primári
 {
     int idPessoa;               // Id da pessoa armazenada no arquivo de dados (4 bytes)
     long int byteOffset;        // Byte Offset do referido id   (8 bytes)
-    struct _index_dreg* next;   // Ponteiro para o próximo nó
-    struct _index_dreg* ant;    // Ponteiro para o nó anterior
 
 }INDEX_DREG;
 
-typedef struct _index_hreg   // Registro de cabeçalho do arquivo de índice primário
+typedef struct _index_dreg_arr  // Array de registros do arquivo de indíce primário
 {
-    char status;            // Campo status - Pode estar em '0' (está sendo manipualado) ou '1' (terminou de manipular)
-}INDEX_HREG;
+    int len;                    // Tamanho do array (n° de registros)
+    INDEX_DREG** idx_arr;       // Array propriamente dito
 
-typedef struct index_list
-{
-    
-    INDEX_DREG* head;
-    INDEX_DREG* tail;
+}INDEX_ARR;
 
-}INDEX_LIST;
+/*
+    Cria um registro de dados de índice primário em memória primária
 
-
+    return:
+        INDEX_DREG* index => Ponteiro para o registro de dados do índice
+*/
+INDEX_DREG* create_index_dreg();
 
 /*
     Cria um arquivo de índice primário com seu registro de cabeçalho.
@@ -39,6 +46,7 @@ typedef struct index_list
         FILE* index_file_p => Ponteiro para arquivo de índice primário.
 */
 FILE* create_index_file(const char* filename);
+
 
 
 #endif

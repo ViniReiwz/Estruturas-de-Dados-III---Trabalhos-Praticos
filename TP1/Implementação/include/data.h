@@ -1,3 +1,12 @@
+/*
+                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+                                
+                                Pedro Avelar Machado                XXXXXXXX
+                                Vinicius Reis Gonçalves             15491921
+*/
+
+//Arquivo 'data.h', contém definiçãode funções, valores e tipos de dados relacionados ao arquivo de dados
+
 #ifndef DATA_H
 #define DATA_H
 
@@ -15,13 +24,13 @@ typedef struct _data_dreg    // Registro de dados do arquivo de dados
     char* nomeUsuario;      // Nome de usuário da pessoa cadastrada no registro (tamanho variável)
     int tamReg;             // Tamanho final do registro
     int tamNomePessoa;      // Tamanho do nome da pessoa em bytes
-    int tamNomeUsuário;     // Tamanho do nome de usuário em bytes
+    int tamNomeUsuario;     // Tamanho do nome de usuário em bytes
     struct _data_dreg* next;
     
 
 }DATA_DREG;
 
-typedef struct _data_hreg        // Registro de cabeçalho do arquivo de dados
+typedef struct _data_hreg       // Registro de cabeçalho do arquivo de dados
 {
 
     char status;                // Campo de status - Indica se o arquivo está sendo manipulado ('0') ou não ('1')
@@ -31,15 +40,13 @@ typedef struct _data_hreg        // Registro de cabeçalho do arquivo de dados
 
 }DATA_HREG;
 
-typedef struct _data_dlist
+typedef struct _data_dlist  // Lista de dados do arquivo de dados
 {
-    DATA_DREG* head;
-    DATA_DREG* tail;
+    DATA_DREG* head;        // Cabeça da listsa (primeiro nó)
+    DATA_DREG* tail;        // Cauda da lista (último nó)
+    DATA_HREG* header_reg;  // Registro de cabeçalho ligado à lista
         
-}DATA_DLIST;
-
-
-
+}DATA_LIST;
 
 /*
     Cria um arquivo de dados e seu registro de cabeçalho
@@ -48,11 +55,75 @@ typedef struct _data_dlist
         const char* filename => Nome_do_arquivo.extensão (arquivo.bin, por exemplo)
 
     return:
-        FILE* data_file_p => Ponteiro para o arquivo de dados
+        FILE* dlist => Ponteiro para a lista de dados emmemória primária
+*/
+DATA_LIST* create_data_list();
+
+/*
+    Cria um nó que representa um registro de cabeçalho do arquivo de dados em memória primária, de tamanho total 17 bytes
+
+    return:
+        DATA_HREG* dhreg => Retorna um endereço para uma variável do tipo 'registro de cabeçalho' do arquivo de dados
+*/
+DATA_HREG* create_data_hreg();
+
+/*
+    Cria um nó que representa um registro de dados no arquivo de dados
+
+    return:
+        DATA_DREG* ddreg => Retorna um endereço para uma variável do tipo 'registro de dados' do arquivo de dados
+*/
+DATA_DREG* create_data_dreg();
+
+
+/*
+    Cria um novo arquivo de dados
+
+    params:
+        const char* filename => Nome do arquivo a ser criado
+
+    return:
+        FILE* data_file_p => Retorna um ponteiro para o início do arquivo de dados
 */
 FILE* create_data_file(const char* filename);
 
+/*
+    Carrega os dados do arquivo fonte para a memória primária
 
-void fill_data_file(const char* filename_dest, const char* filename_src);
+    params:
+        FILE* file => Ponteiro para arquivo fonte
+        DATA_LIST* data_list => Lista de dados para qual deseja carregar o conteúdo
+
+    return:
+        void
+*/
+void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list);
+
+/*
+    Escreve os itens da lista no arquivo de daados
+
+    params:
+        DATA_LIST* dlist => Lista onde estão presentes os dados a serem escritos
+        FILE* file => Arquivo onde os dados devem ser escritos
+    
+    return:
+        void
+*/
+void write_on_data_file(DATA_LIST* dlist, FILE* file);
+
+/*
+    Preenche arquivo de dados
+
+    params:
+        const char* dest_filename => Arquivo de destino, o qual deseja-se preencher
+        const char* src_filename => Arquivo donte, do qual os dados seram lidos
+    
+    return:
+        void
+*/
+void fill_data_file(const char* dest_filename, const char* src_filename);
+
+void read_from_file(const char* filename);
+
 
 #endif

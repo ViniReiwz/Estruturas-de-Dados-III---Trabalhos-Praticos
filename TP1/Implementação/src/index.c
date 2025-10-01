@@ -10,6 +10,21 @@
 #include "all.h"
 
 /*
+    Cria um registro de dados de índice primário em memória primária
+
+    return:
+        INDEX_DREG* index => Ponteiro para o registro de dados do índice
+*/
+INDEX_DREG* create_index_dreg()
+{
+    INDEX_DREG* index = (INDEX_DREG*)calloc(1,sizeof(INDEX_DREG));  // Aloca a memória
+    index->byteOffset= -1;                                          // Inicializa byteOffset como -1 (null)
+    index->idPessoa = -1;                                           // Inicializa idPessoa como -1 (null)
+    return index;                                                   // Retorna o endereço da região de memória
+}
+
+
+/*
     Cria um arquivo de índice primário com seu registro de cabeçalho.
 
     params:
@@ -57,7 +72,8 @@ FILE* create_index_file(const char* filename)
     return index_file_p;                                // Retorna o ponteiro para o arquvo
 }
 
-void list_indexes(FILE* index_file)
-{
-    
-}
+
+// INDEX_DREG* indexate(DATA_DREG* ddreg, long int boffset)
+// {
+//     INDEX_DREG* index = create_index_dreg()
+// }

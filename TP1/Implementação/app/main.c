@@ -8,7 +8,7 @@ int main()
 
     while (1)
     {
-        print_menu();                           // Exibe o menu
+        // print_menu();                           // Exibe o menu
 
         strcpy(func_str,"");                    // Inicializa como uma string vazia
         fgets(func_str,OPT_LEN,stdin);          // Lê as entradas do teclado, todas de uma vez       
@@ -17,50 +17,56 @@ int main()
 
         int opt = atoi(args[1]);                // Transforma a opção de char para int
 
-        if(DEBUG)
-        {
-            printf("%i\n",atoi(args[0]));
-        }
-
         switch (opt)
         {
         case 1:
-            if(atoi(args[0]) < 2)
             {
-                if(DEBUG)
+                if(atoi(args[0]) < 2)
                 {
-                    printf("Poucos argumentos!!\n");
+                    if(DEBUG)
+                    {
+                        printf("Poucos argumentos!!\n");
+                    }
+                    break;
                 }
-                break;
-            }
 
-            else
-            {
-                FILE* index_file = create_index_file(args[2]);
-                close_file(index_file);
-                break;
+                else
+                {
+                    CREATE_INDEX(args[2]);
+                    break;
+                }
             }
         
         case 2:
-            printf("\nFuncionalidade 2\n");
-            fill_data_file("dest.bin","dados.csv");
-            break;
+            {
+                printf("\nFuncionalidade 2\n");
+                fill_data_file("dest.bin","dados.csv");
+                break;
+            }
         
         case 3:
-            printf("\nFuncionalidade 3\n");
-            break;
+            {
+                printf("\nFuncionalidade 3\n");
+                break;
+            }
 
         case 4:
-            printf("\nFuncionalidade 4\n");
-            break;
+            {
+                printf("\nFuncionalidade 4\n");
+                break;
+            }
         
         case -1:
-            printf("\nSaindo...\n");
-            exit(0);
+            {
+                printf("\nSaindo...\n");
+                exit(0);
+            }
             
         default:
-            printf("\nSelecione uma opção  válida !\n");
-            break;
+            {
+                printf("\nSelecione uma opção  válida !\n");
+                break;
+            }
         }
     }
     
