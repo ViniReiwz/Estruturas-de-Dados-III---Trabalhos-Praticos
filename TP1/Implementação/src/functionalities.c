@@ -24,5 +24,24 @@ void CREATE_INDEX(const char* index_filename)
 
 void CREATE_TABLE(const char* src_filename, const char* output_filename, const char* index_filename)
 {
-    return;
+    char* src_path = get_file_path(src_filename);
+    FILE* src_file = fopen(src_path,"r");
+    if(src_file == NULL)
+    {
+        print_error();
+        return;
+    }
+
+    FILE* output_file = create_data_file(output_filename);
+
+    char* index_path = get_file_path(index_filename);
+    FILE* index_file = fopen(index_path,"rb+");
+    if(index_file == NULL)
+    {
+        print_error();
+    }
+
+    DATA_LIST* dlist = fill_data_file(src_file,output_file);
+
+    
 }

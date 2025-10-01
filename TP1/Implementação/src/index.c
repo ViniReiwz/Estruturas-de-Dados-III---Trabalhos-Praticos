@@ -72,8 +72,55 @@ FILE* create_index_file(const char* filename)
     return index_file_p;                                // Retorna o ponteiro para o arquvo
 }
 
+/*
+    Relaciona o ida ao byte offset e retorna o registro de dados do arquivo de índice em memória primária
 
-// INDEX_DREG* indexate(DATA_DREG* ddreg, long int boffset)
+    params:
+        int id => id da pessoa cadastrada
+        long int boffset => byte offser para o começo do registro de dados da pessoa com o referido id
+    
+        return INDEX_DREG* index => registro de dados do arquivo de indíce em memória primária
+*/
+INDEX_DREG* indexate(int id, long int boffset)
+{
+    INDEX_DREG* index = create_index_dreg();    // Cria um registro de indíce em memória primária
+    index->idPessoa = id;                       // Atribui o id passado ao registro
+    index->byteOffset = boffset;                // Atribui o byte offset passado ao registro
+    return index;                               // Retorna o registro de dados
+}
+
+/*
+    Escreve os dados da memória primária para o arquivo de índice
+
+    params:
+        FILE* index_file => Ponteiro para o arquivo de índice
+        INDEX_ARR* idxarr => Tipo de dados que armazea todos os registros de índice  em memória primária, bem como o número de registros de índice
+    return:
+        void
+*/
+void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
+{   
+    fseek(index_file,IDX_HEAD_REG_LEN,SEEK_SET);                // Posiciona o ponteiro do arquivo depois do registro de cabeçalho
+
+    for(int i = 0; i < idxarr->len; i++)                        // Varre todos os registros de índice, escrevendo um à um no arquivo
+    {
+        fwrite(&idxarr->idx_arr[i].idPessoa,4,1,index_file);
+        fwrite(&idxarr->idx_arr[i].byteOffset,8,1,index_file);
+    }
+}
+
+// void load_from_data_list(INDEX_ARR* idxarr, DATA_LIST* dlist)
 // {
-//     INDEX_DREG* index = create_index_dreg()
+//     idxarr->len = dlist->header_reg->qtdPessoas;
+//     DATA_DREG* p = dlist->head;
+//     int i = 0;
+//     while (p!=NULL)
+//     {
+//         idxarr->idx_arr[i] = indexate(p->idPessoa,)
+//     }
+// }
+
+// void fill_index_file(FILE* index_file, DATA_LIST dlist)
+// {
+
 // }

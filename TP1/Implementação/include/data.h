@@ -121,7 +121,7 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file);
     return:
         void
 */
-void fill_data_file(const char* dest_filename, const char* src_filename);
+DATA_LIST* fill_data_file(FILE* src_file, FILE* dest_file);
 
 void read_from_file(const char* filename);
 

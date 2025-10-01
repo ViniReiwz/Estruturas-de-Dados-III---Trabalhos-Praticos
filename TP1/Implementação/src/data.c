@@ -51,14 +51,14 @@ DATA_HREG* create_data_hreg()
 DATA_DREG* create_data_dreg()
 {
     DATA_DREG* ddreg = (DATA_DREG*)calloc(1,sizeof(DATA_DREG)); // Aloca o espaço para um elemento na memŕoia heap
-    ddreg->idadePessoa = -1;                                     // Campo idade pessoa (4 bytes), iniciado em -1                                   
-    ddreg->idPessoa = -1;                                        // Campo Id pessoa (4 bytes), iniciado em -1
+    ddreg->idadePessoa = -1;                                    // Campo idade pessoa (4 bytes), iniciado em -1                                   
+    ddreg->idPessoa = -1;                                       // Campo Id pessoa (4 bytes), iniciado em -1
     ddreg->removido = '0';                                      // Campo removido (1 byte), representa a remoção lógica do registro
     ddreg->tamNomePessoa = 0;                                   // Campo Tamanho do nomePessoa (4 bytes), iniciado em 0
     ddreg->nomePessoa = NULL;                                   // Campo nomePessoa, iniciado em NULL (tamanho variável)
     ddreg->tamNomeUsuario = 0;                                  // Campo tamNomeUsuario, iniciado em 0 (4 bytes)
     ddreg->nomeUsuario = NULL;                                  // Campo nomeUsuario, iniciado em NULL (tamanho variável)
-    ddreg->tamReg = 0;                                          // Tamanho do registro, iniciado em 0 (4 bytes)
+    ddreg->tamReg = -1;                                         // Tamanho do registro, iniciado em 0 (4 bytes)
 
     return ddreg;                                               // Retorna o registro de dados em memória primária
 }
@@ -260,11 +260,15 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file)
 
         fwrite(&d_reg->idPessoa,4,1,file);
 
+        fwrite(&d_reg->idadePessoa,4,1,file);
+
         fwrite(&d_reg->tamNomePessoa,4,1,file);
-        fwrite(&d_reg->nomePessoa,1,d_reg->tamNomePessoa,file);
+        if(d_reg->nomePessoa != NULL)
+        {fwrite(d_reg->nomePessoa,1,d_reg->tamNomePessoa,file);}
 
         fwrite(&d_reg->tamNomeUsuario,4,1,file);
-        fwrite(&d_reg->nomeUsuario,1,d_reg->tamNomeUsuario,file);
+        if(d_reg->nomeUsuario != NULL)
+        {fwrite(d_reg->nomeUsuario,1,d_reg->tamNomeUsuario,file);}
 
         dlist->header_reg->qtdPessoas++;
 
@@ -281,37 +285,10 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file)
         const char* src_filename => Arquivo donte, do qual os dados seram lidos
     
     return:
-        void
+        DATA_LIST* dlist => Lista com os dados do arquivo em memória primária
 */
-void fill_data_file(const char* dest_filename, const char* src_filename)
+DATA_LIST* fill_data_file(FILE* src_file, FILE* dest_file)
 {   
-    char* src_path = get_file_path(src_filename);                               // Pega o caminho correto para o arquivo font
-    char* dest_path = get_file_path(dest_filename);                             // Pega o caminho correto para o arquivo destino
-
-    FILE* src_file  = fopen(src_path,"r");                                      // Abre o arquivo de fonte para leitura
-    if(src_file == NULL)                                                        // Verifica se abertura ocorreu corretamente
-    {
-        print_error();
-        if (DEBUG)
-        {
-            printf("Erro ao abir csv ! -> Caminho relativo : %s\n",src_path);
-        }
-        return;
-    }
-
-    FILE* dest_file = fopen(dest_path,"ab");                                    // Abre o arquivo destino para 'append binary'
-    if(dest_file == NULL)                                                       // Verifica se o arquivo existe no caminho especificado
-    {
-        dest_file = create_data_file(dest_filename);                            // Cria o arquivo se necessário  
-        if(dest_file == NULL && DEBUG)
-        {
-            printf("Erro ao criar arquivo!\n");
-            return;
-        }
-    }
-
-    free(src_path);                                                             // Libera o espaço das strings dos caminhos
-    free(dest_path);
 
     DATA_LIST* dlist = create_data_list();                                      // Cria uma lista de dados do arquivo de dados
     DATA_HREG* d_hreg = create_data_hreg();                                     // Cria um registro de cabeçalho em memória primária
@@ -321,17 +298,16 @@ void fill_data_file(const char* dest_filename, const char* src_filename)
 
     dlist->header_reg = d_hreg;                                                 // Linka o registro de dados à lista
 
-    load_csvfile_to_mem(src_file,dlist);                                           // Carrega do arquivo fonte para a memória primária
-    
+    load_csvfile_to_mem(src_file,dlist);                                        // Carrega do arquivo fonte para a memória primária
+
     write_on_data_file(dlist,dest_file);
 
     d_hreg->status = '1';
 
-    printf("DIRETO DO D_HREG :: status: %c; qtdpessoas:%i; proxbtyte offset: %li\n",d_hreg->status,d_hreg->qtdPessoas,d_hreg->proxByteOffset);
-    printf("DIRETO DA LISTA :: status: %c; qtdpessoas:%i; proxbtyte offset: %li\n",dlist->header_reg->status,dlist->header_reg->qtdPessoas,dlist->header_reg->proxByteOffset);
-
     update_dheader_reg(d_hreg,dest_file);
 
     fclose(src_file);
-    fclose(dest_file);                                                      // Fecha arquivo de destino
+    fclose(dest_file);                                                          // Fecha arquivo de destino
+
+    return  dlist;
 }
