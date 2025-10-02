@@ -34,7 +34,6 @@ DATA_LIST* create_data_list()
 DATA_HREG* create_data_hreg()
 {
     DATA_HREG* dhreg = (DATA_HREG*)calloc(1,sizeof(DATA_HREG)); // Aloca o tamanho de um nó em memória heap
-    dhreg->status = '1';                                        // Seta o campo 'status' como '1' por padrão (1 byte)
     dhreg->qtdPessoas = 0;                                      // Quantidade de pessoas no arquivo de dados, iniciada em 0 (4 bytes)
     dhreg->qtdRemovidos = 0;                                    // Quantidade de registros logicamente removidos, iniciada em 0 (4 bytes)
     dhreg->proxByteOffset = 0;                                  // Determina o próximo byte offset disponível para inserção (8 bytes)
@@ -64,6 +63,55 @@ DATA_DREG* create_data_dreg()
 }
 
 /*
+    Libera a memória de um registro de dados do arquivo de dados em memória primária
+
+    params:
+        DATA_DREG* ddreg => Registro a ser liberado
+    
+    return:
+        void
+*/
+void destroy_data_dreg(DATA_DREG* ddreg)
+{
+    free(ddreg->nomePessoa);    // Libera memória do campo 'nomePessoa'
+    free(ddreg->nomeUsuario);   // Libera memória do campo 'nomeUsuario'
+    free(ddreg);
+}
+
+/*
+    Libera a memória de um registro de cabeçalho do arquivo de dados em memória primária
+
+    params:
+        DATA_HREG* dhreg => Registro de cabeçalho cuja memória deve ser liberada
+*/
+void destroy_data_hreg(DATA_HREG* dhreg)
+{
+    free(dhreg);
+}
+
+/*
+    Destrói uma lista de registros de dados do arquivo de dados em memória primária
+
+    params:
+        DATA_LIST* dlist => Lista cuja memória deve ser liberada
+
+    return:
+        void
+*/
+void destroy_data_list(DATA_LIST* dlist)
+{
+    destroy_data_hreg(dlist->header_reg);   // Libera a memória para o registro de cabeçalho
+    while (dlist->head!=NULL)               // Percorre toda a lista
+    {
+        DATA_DREG* p = dlist->head->next;   // Armazena o endereço do próximo nó
+        destroy_data_dreg(dlist->head);     // Libera a memória para o nó atual
+        dlist->head = p;                    // Move a head para o próximo nó
+    }       
+
+    free(dlist);                            // Libera espaço da estrutura em si
+}
+
+/*
 Atualiza o registro de cabeçalho do arquivo de dados
 
 params:
@@ -87,9 +135,7 @@ void  update_dheader_reg(DATA_HREG* d_hreg, FILE* file)
     
     long int old_pos = ftell(file);             // Armazena a posição atual do  ponteiro em 'old_pos'
     
-    fseek(file,0,SEEK_SET);                     // Posiciona o ponteiro 'file' no começo do arquivo
-    
-    fwrite(&d_hreg->status,1,1,file);           // Atualiza o campo 'satus' (1 byte)
+    fseek(file,1,SEEK_SET);                     // Posiciona o ponteiro 'file' no começo do arquivo, pulando 'status'
     
     fwrite(&d_hreg->qtdPessoas,4,1,file);       // Atualiza o campo 'qtdPessoas' (4 bytes)
     
@@ -184,23 +230,23 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
 
         data_reg->idPessoa = atoi(data[1]);                                         // Lê o idPessoa e atribui ao nó
         
-        if(data[2] != NULL)
+        if(data[2] != NULL)                                                         // Verifica se o nome é != NULL
         {
             data_reg->tamNomePessoa = strlen(data[2]);
-            data_reg->nomePessoa = (char*)calloc(data_reg->tamNomePessoa + 1,sizeof(char));
+            data_reg->nomePessoa = (char*)calloc(data_reg->tamNomePessoa + 1,sizeof(char));     // Se for, grava o tamanho, aloca a memória e copia a string
             strcpy(data_reg->nomePessoa,data[2]);
         }
-        else{data_reg->tamNomePessoa = 0;}
+        else{data_reg->tamNomePessoa = 0;}                                          // Se não, atribui o tamanho  como 0
 
         data_reg->idadePessoa = atoi(data[3]);                                      // Lê o idadePessoa e atribui ao nó
 
-        if(data[4] != NULL)
+        if(data[4] != NULL)                                                         // Verifica se o usuário é != NULL
         {
             data_reg->tamNomeUsuario = strlen(data[4]) - 1;
-            data_reg->nomeUsuario = (char*)calloc(data_reg->tamNomeUsuario + 1,sizeof(char));
+            data_reg->nomeUsuario = (char*)calloc(data_reg->tamNomeUsuario + 1,sizeof(char));   // Se for, aloca a memmória e copia a string
             strcpy(data_reg->nomeUsuario,data[4]);
         }
-        else{data_reg->tamNomeUsuario = 0;}
+        else{data_reg->tamNomeUsuario = 0;}                                         // Se não, mantém null e seta o tamanho como 0
 
         data_reg->tamReg = 21 + data_reg->tamNomePessoa + data_reg->tamNomeUsuario; // Calcula o tamanho do registro (21 bytes fixos + tamanho dos campos variáveis)
 
@@ -217,7 +263,7 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
         data_list->tail->next = NULL;                                               // Atribui o próximo ao ultimo nó vomo NULL
         data_list->header_reg->qtdPessoas++;                                        // Aumenta o campo quantidade de pessoas no registro de cabeçalho
 
-        if(DEBUG)
+        if(DEBUG)                                                                   // Exibe os registros carregados em memória primária
         {
             printf("\nEm memória primária:\n\n");
             print_ddreg(data_list->tail);
@@ -233,14 +279,14 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
         FILE* file => Arquivo onde os dados devem ser escritos
     
     return:
-        void
+        INDEX_ARR* idx => Arquivo de índice *desordenado* em memória primária
 */
 INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file)
 {   
 
-    if(file == NULL)
+    if(file == NULL)                                                    // Verifica se o arquivo de dados existe ou está aberto
     {
-        print_error();
+        print_error();                                                  // Exibe mensagem de erro
         if(DEBUG)
         {
             printf("Arquivo == NULL ao tentar escrever");
@@ -248,72 +294,80 @@ INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file)
         return NULL;
     }
 
-    fseek(file,DF_HEAD_REG_LEN,SEEK_SET);
+    fseek(file,DF_HEAD_REG_LEN,SEEK_SET);                               // Pula o registro de cabeçalho para começar a escrever
 
-    INDEX_ARR* idx = create_index_arr(dlist->header_reg->qtdPessoas);
-    int i = 0;
+    INDEX_ARR* idx = create_index_arr(dlist->header_reg->qtdPessoas);   // Cria um vetor com registros de dados do arquivo de índice em memória primária com tamanho igual ao número de registros no arquivo daddos
+    int i = 0;                                                          // Variável auxiliar para percorrer o vetor acima                           
 
-    DATA_DREG* d_reg;
-    d_reg = dlist->head;
+    DATA_DREG* d_reg = dlist->head;                                     // Cria um ponteiro de registros de dados do arquivo de dados para percorrer a lista em memória primária
 
-    while (d_reg!=NULL)
+    while (d_reg!=NULL)                                                 // Percorre toda a lista
     {     
-        idx->idx_arr[i] = indexate(d_reg->idPessoa,ftell(file));
+        idx->idx_arr[i] = indexate(d_reg->idPessoa,ftell(file));        // Indexa o id com o byteoffset atual
 
-        if(DEBUG){printf("Inserindo: \n");print_ddreg(d_reg);}
-        fwrite(&d_reg->removido,1,1,file);
+        if(DEBUG){printf("Inserindo: \n");print_ddreg(d_reg);}          // Exibe o registro atual na lista
 
-        fwrite(&d_reg->tamReg,4,1,file);
+        fwrite(&d_reg->removido,1,1,file);                              // Salva o campo 'removido' no arquivo (char : 1 byte)
 
-        fwrite(&d_reg->idPessoa,4,1,file);
+        fwrite(&d_reg->tamReg,4,1,file);                                // Salva o tamanho do registro no arquivo (int : 4 bytes)
 
-        fwrite(&d_reg->idadePessoa,4,1,file);
+        fwrite(&d_reg->idPessoa,4,1,file);                              // Salva 'idPessoa' no arquivo (int : 4 bytes)
 
-        fwrite(&d_reg->tamNomePessoa,4,1,file);
-        if(d_reg->nomePessoa != NULL)
-        {fwrite(d_reg->nomePessoa,1,d_reg->tamNomePessoa,file);}
+        fwrite(&d_reg->idadePessoa,4,1,file);                           // Salva a 'idadePessoa' no arquivo (int : 4 bytes)
 
-        fwrite(&d_reg->tamNomeUsuario,4,1,file);
-        if(d_reg->nomeUsuario != NULL)
-        {fwrite(d_reg->nomeUsuario,1,d_reg->tamNomeUsuario,file);}
+        fwrite(&d_reg->tamNomePessoa,4,1,file);                         // Salva 'tamNomePessoa' no arquivo (int : 4 bytes)
+        if(d_reg->tamNomePessoa > 0)
+        {fwrite(d_reg->nomePessoa,1,d_reg->tamNomePessoa,file);}        // Salva 'nomePessoa' se o tamanho for maior que 0 (variável)
 
-        d_reg = d_reg->next;
-        dlist->header_reg->proxByteOffset = ftell(file);
+        fwrite(&d_reg->tamNomeUsuario,4,1,file);                        // Salva 'tamNomeUsuario' no arquivo (int : 4 bytes)
+        if(d_reg->tamNomeUsuario > 0)
+        {fwrite(d_reg->nomeUsuario,1,d_reg->tamNomeUsuario,file);}      // Salva 'nomeUsuario' se o tamanho for maior que 0 (variável)
+
+        d_reg = d_reg->next;                                            // Avança na lista de registros de dados
+        dlist->header_reg->proxByteOffset = ftell(file);                // Atualiza o próximo byte offset disponível para a escrita
         
-        i++;
+        i++;                                                            // Incrementa no índice do vetor de índices
     }
 
-    return idx;
+    return idx;                                                         // Retorna o vetor de reigstros de dados do arquivo de índice
 }
 
 /*
-    Preenche arquivo de dados
+    Preenche arquivo de dados e cria um arquivo de índice em memória primária
 
     params:
         const char* dest_filename => Arquivo de destino, o qual deseja-se preencher
         const char* src_filename => Arquivo donte, do qual os dados seram lidos
     
     return:
-        DATA_LIST* dlist => Lista com os dados do arquivo em memória primária
+        INDEX_ARR* idx => Vetor contendo os registros de dados do arquivo de indíce relacionado ao arquivo de dados, já ordenado
 */
 INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file)
 {   
 
-    DATA_LIST* dlist = create_data_list();                                      // Cria uma lista de dados do arquivo de dados
-    DATA_HREG* d_hreg = create_data_hreg();                                     // Cria um registro de cabeçalho em memória primária
-    d_hreg->status = '0';                                                       // Indica que o arquivo de dados está sendo manipulado
+    DATA_LIST* dlist = create_data_list();                  // Cria uma lista de dados do arquivo de dados
+    DATA_HREG* d_hreg = create_data_hreg();                 // Cria um registro de cabeçalho em memória primária
 
-    update_dheader_reg(d_hreg,dest_file);                                       // Atualiza o registro de cabeçalho com status '0'
+    dlist->header_reg = d_hreg;                             // Linka o registro de dados à lista
 
-    dlist->header_reg = d_hreg;                                                 // Linka o registro de dados à lista
+    load_csvfile_to_mem(src_file,dlist);                    // Carrega do arquivo fonte para a memória primária
 
-    load_csvfile_to_mem(src_file,dlist);                                        // Carrega do arquivo fonte para a memória primária
+    INDEX_ARR* idx = write_on_data_file(dlist,dest_file);   // Escreve os dados no arquivo de destino e indexa o byte offset ao id em memória primária
 
-    INDEX_ARR* idx = write_on_data_file(dlist,dest_file);
+    order_index(idx);                                       // Ordena o arquivo de índice em memória primária
     
-    d_hreg->status = '1';
+    if(DEBUG)                                               // Exibe os registros de índice ordenados
+    {
+        for(int i = 0; i < idx->len; i ++)
+        {
+            printf("ÍNDICE %i\n",i);
+            print_index(idx->idx_arr[i]);
+        }
+    }
 
-    update_dheader_reg(d_hreg,dest_file);
+    update_dheader_reg(d_hreg,dest_file);                   // Atualiza o cabeçalho do arquivo de dados, exceto status
 
-    return idx;
+    //TODO - DESTRUIR OS NÓS EM MEMÓRIA PRIMÁRIA
+
+    return idx;                                             // Retorna ponteiro para arquivo de índice em memória primária
 }

@@ -64,7 +64,7 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
 }
 
 /*
-    Exibe o menu com as funcionalidades e seus respectivos argumentos
+    Exibe o menu com as funcionalidades e seus respectivos argumentos para DEBUG
 */
 void print_menu()
 {   
@@ -106,6 +106,22 @@ void print_ddreg(DATA_DREG* ddreg)
 }
 
 /*
+    Exibe um registro de dadoos do arquivo de índice em memória primária
+
+    INDEX_DREG idx => Registro a ser exibido
+
+    return:
+        void
+*/
+void print_index(INDEX_DREG idx)
+{
+    puts("");
+    printf("\'id\' ==> %i\n",idx.idPessoa);
+    printf("\'byte offset\' ==> %li\n",idx.byteOffset);
+    puts("");
+}
+
+/*
     Retorna o caminho relativo do arquivo
 
     params:
@@ -123,4 +139,20 @@ char* get_file_path(const char* filename)
 
     return file_path;                                       // Retorna o caminho relativo
 
+}
+
+/*
+    Atualiza o campo 'status' do arquivo de cabeçaho do registro de índice
+
+    params:
+        FILE* file => Ponteiro do arquivo que deseja-se atualizar o status
+        char status => char do status '1', consistente '0', inconsistente
+    
+    return:
+        void
+*/
+void update_file_status(FILE* file, char status)
+{
+    fseek(file,0,SEEK_SET);     // Posiciona o ponteiro no início do arquivo
+    fwrite(&status,1,1,file);   // Atualiza o campo status para o char passado
 }

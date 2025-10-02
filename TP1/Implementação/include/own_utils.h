@@ -14,7 +14,7 @@
 #define MAX_ARGS 10         // Número máximo de argumentos para cada opção
 #define ARG_LEN 50          // Tamanho médio de cada argumento
 #define FILE_DIR "./"       // Pasta em que todos os arquivos devem ser procurados ou salvos
-#define DEBUG 1             // Variável de deubg, habilita os prints nas funções
+#define DEBUG 0             // Variável de deubg, habilita os prints nas funções
 #define ERROR_MSG "\nFalha ao processar arquivo!\n" // Variável de mensagem de erro padrão
 
 #include "all.h"
@@ -57,6 +57,16 @@ void print_error();
 void print_ddreg(DATA_DREG* ddreg);
 
 /*
+    Exibe um registro de dadoos do arquivo de índice em memória primária
+
+    INDEX_DREG idx => Registro a ser exibido
+
+    return:
+        void
+*/
+void print_index(INDEX_DREG idx);
+
+/*
     Retorna o caminho relativo do arquivo
 
     params:
@@ -67,6 +77,16 @@ void print_ddreg(DATA_DREG* ddreg);
 */
 char* get_file_path(const char* filename);
 
+/*
+    Atualiza o campo 'status' do arquivo de cabeçaho do registro de índice
 
+    params:
+        FILE* file => Ponteiro do arquivo que deseja-se atualizar o status
+        char status => char do status '1', consistente '0', inconsistente
+    
+    return:
+        void
+*/
+void update_file_status(FILE* file, char status);
 
 #endif

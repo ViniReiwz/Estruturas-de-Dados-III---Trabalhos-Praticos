@@ -33,7 +33,6 @@ typedef struct _data_dreg    // Registro de dados do arquivo de dados
 typedef struct _data_hreg       // Registro de cabeçalho do arquivo de dados
 {
 
-    char status;                // Campo de status - Indica se o arquivo está sendo manipulado ('0') ou não ('1')
     int qtdPessoas;             // Quantidade de pessoas (registros) no arquivo de dados
     int qtdRemovidos;           // Quantidade de pessoas (registros) removidos logicamente no arquivo de dados
     long int proxByteOffset;    // Próxima posição disponível para armazenamento de novo registro
@@ -77,6 +76,48 @@ DATA_DREG* create_data_dreg();
 
 
 /*
+    Libera a memória de um registro de dados do arquivo de dados em memória primária
+
+    params:
+        DATA_DREG* ddreg => Registro a ser liberado
+    
+    return:
+        void
+*/
+void destroy_data_dreg(DATA_DREG* ddreg);
+
+/*
+    Libera a memória de um registro de cabeçalho do arquivo de dados em memória primária
+
+    params:
+        DATA_HREG* dhreg => Registro de cabeçalho cuja memória deve ser liberada
+*/
+void destroy_data_hreg(DATA_HREG* dhreg);
+
+/*
+    Destrói uma lista de registros de dados do arquivo de dados em memória primária
+
+    params:
+        DATA_LIST* dlist => Lista cuja memória deve ser liberada
+
+    return:
+        void
+*/
+void destroy_data_list(DATA_LIST* dlist);
+
+/*
+Atualiza o registro de cabeçalho do arquivo de dados
+
+params:
+DATA_HREG* d_hreg => Registro de cabeçalho em memória primária, contendo os dados corretos para atualizar
+FILE* file => Ponteiro para o arquivo ao qual deseja atualizar o registro de cabeçalho
+
+return:
+FILE* old => Posição original do ponteiro 'file'
+*/
+void  update_dheader_reg(DATA_HREG* d_hreg, FILE* file);
+
+/*
     Cria um novo arquivo de dados
 
     params:
@@ -112,19 +153,15 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list);
 INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file);
 
 /*
-    Preenche arquivo de dados
+    Preenche arquivo de dados e cria um arquivo de índice em memória primária
 
     params:
         const char* dest_filename => Arquivo de destino, o qual deseja-se preencher
         const char* src_filename => Arquivo donte, do qual os dados seram lidos
     
     return:
-        void
+        INDEX_ARR* idx => Vetor contendo os registros de dados do arquivo de indíce relacionado ao arquivo de dados, já ordenado
 */
 INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file);
-
-void read_from_file(const char* filename);
-
-
 
 #endif

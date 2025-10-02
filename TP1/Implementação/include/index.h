@@ -37,6 +37,39 @@ typedef struct _index_dreg_arr  // Array de registros do arquivo de indíce prim
 INDEX_DREG* create_index_dreg();
 
 /*
+    Cria um vetor de registros de dados do arquivo de índice
+
+    params:
+        int len => Tamanho do vetor (n° de registros de índice)
+    
+    return:
+        INDEX_ARR* idx => Ponteiro para INDEX_ARR com memória alocada para o vetor e seu tamanho
+*/
+INDEX_ARR* create_index_arr(int len);
+
+/*
+    Libera a memória de um registro de dados do arquivo de índice na memória primária
+
+    params:
+        INDEX_DREG* idxdreg => Ponteiro para o registro de dados a ser liberado da memória
+    
+    return:
+        void
+*/
+void destroy_index_dreg(INDEX_DREG* idxdreg);
+
+/*
+    Libera a memória de um vetor de registros de dados do arquivo de índice na memoria primária
+
+    params:
+        IDNEX_ARR* idxarr => Ponteiro para o vetor de registros a ser liberado
+    
+    return:
+        void
+*/
+void destroy_index_arr(INDEX_ARR* idxarr);
+
+/*
     Cria um arquivo de índice primário com seu registro de cabeçalho.
 
     params:
@@ -47,13 +80,38 @@ INDEX_DREG* create_index_dreg();
 */
 FILE* create_index_file(const char* filename);
 
-INDEX_ARR* create_index_arr(int len);
+/*
+    Relaciona o ida ao byte offset e retorna o registro de dados do arquivo de índice em memória primária
 
+    params:
+        int id => id da pessoa cadastrada
+        long int boffset => byte offser para o começo do registro de dados da pessoa com o referido id
+    
+        return INDEX_DREG* index => registro de dados do arquivo de indíce em memória primária
+*/
 INDEX_DREG indexate(int id, long int boffset);
 
+/*
+    Escreve os dados da memória primária para o arquivo de índice
+
+    params:
+        FILE* index_file => Ponteiro para o arquivo de índice
+        INDEX_ARR* idxarr => Tipo de dados que armazea todos os registros de índice  em memória primária, bem como o número de registros de índice
+    return:
+        void
+*/
 void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr);
 
-void update_index_status(FILE* file, char status);
+/*
+    Ordena os registros de índice utilizando o bubble sor aprimorado
+
+    params:
+        INDEX_ARR* index_arr => Endereço do tipo INDEX_ARR, que contém o vetor a ser ordenado
+
+    return:
+        void
+*/
+void order_index(INDEX_ARR* index_arr);
 
 
 

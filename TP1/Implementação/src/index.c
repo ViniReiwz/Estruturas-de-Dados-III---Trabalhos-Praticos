@@ -23,13 +23,57 @@ INDEX_DREG* create_index_dreg()
     return index;                                                   // Retorna o endereço da região de memória
 }
 
+/*
+    Cria um vetor de registros de dados do arquivo de índice
+
+    params:
+        int len => Tamanho do vetor (n° de registros de índice)
+    
+    return:
+        INDEX_ARR* idx => Ponteiro para INDEX_ARR com memória alocada para o vetor e seu tamanho
+*/
 INDEX_ARR* create_index_arr(int len)
 {
-    INDEX_ARR* idx = (INDEX_ARR*)calloc(1,sizeof(INDEX_ARR));
-    idx->idx_arr = (INDEX_DREG*)calloc(len,sizeof(INDEX_DREG));
-    idx->len = len;
+    INDEX_ARR* idx = (INDEX_ARR*)calloc(1,sizeof(INDEX_ARR));   // Aloca memória para INDEX_ARR*
+    idx->idx_arr = (INDEX_DREG*)calloc(len,sizeof(INDEX_DREG)); // Aloca a memória para o vetor de registros de dados do arquivo de índice
+    idx->len = len;                                             // Salva o tamanho do vetor
 
-    return idx;
+    return idx;                                                 // Retorna o ponteiro para a região de memória alocada
+}
+
+/*
+    Libera a memória de um registro de dados do arquivo de índice na memória primária
+
+    params:
+        INDEX_DREG* idxdreg => Ponteiro para o registro de dados a ser liberado da memória
+    
+    return:
+        void
+*/
+void destroy_index_dreg(INDEX_DREG* idxdreg)
+{
+    free(idxdreg);
+}
+
+/*
+    Libera a memória de um vetor de registros de dados do arquivo de índice na memoria primária
+
+    params:
+        IDNEX_ARR* idxarr => Ponteiro para o vetor de registros a ser liberado
+    
+    return:
+        void
+*/
+void destroy_index_arr(INDEX_ARR* idxarr)
+{
+    int len = idxarr->len;                          // Grava o tamanho do vetor
+    for(int i = 0; i < len ; i ++)                  // Percorre todo o cetor
+    {
+        destroy_index_dreg(&idxarr->idx_arr[i]);    // Destroi cada registro de dados presente no vetor
+    }
+
+    free(idxarr->idx_arr);                          // Libera a memória do ponteiro propriamente dito
+    free(idxarr);                                   // Libera a memória da estrutura
 }
 
 /*
@@ -116,11 +160,39 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
         fwrite(&idxarr->idx_arr[i].byteOffset,8,1,index_file);
     }
 
-    printf("\nOFFSET FINAL --> %li\n",ftell(index_file));
+    
+    if(DEBUG){printf("\nOFFSET FINAL --> %li\n",ftell(index_file));}    // Exibe o offset em que o ponteiro de file parou
 }
 
-void update_index_status(FILE* file, char status)
-{
-    fseek(file,0,SEEK_SET);
-    fwrite(&status,1,1,file);
+/*
+    Ordena os registros de índice utilizando o bubble sor aprimorado
+
+    params:
+        INDEX_ARR* index_arr => Endereço do tipo INDEX_ARR, que contém o vetor a ser ordenado
+
+    return:
+        void
+*/
+void order_index(INDEX_ARR* index_arr)
+{   
+    //Bubble sort aprimorado:
+
+    int aux = index_arr->len;                                                       // Variável auxiliar que carrega o tamanho do vetor
+    int swapped = 1;                                                                // Variável auxiliar que guarda a informação se o vetor foi alterado ou não
+    while (swapped)                                                                 // Atua enquanto o vetor estiver sendo alterado (ordenando-se)
+    {
+        swapped = 0;                                                                // Setado pra zero, logo sai do loop caso não seja atualizado
+        for(int i = 0; i < aux; i ++)                                               // Percorre todo o vetor
+        {
+            if(index_arr->idx_arr[i].idPessoa > index_arr->idx_arr[i+1].idPessoa)   // Verifica se o elemento i é > do que i + 1 (desorndenado)
+            {
+                INDEX_DREG hold = index_arr->idx_arr[i];                            // Variável auxiliar que guarda o valor da posição i
+                index_arr->idx_arr[i] = index_arr->idx_arr[i+1];                    // Troca o conteúdo das posições
+                index_arr->idx_arr[i+1] = hold;                                     
+                swapped = 1;                                                        // Indica que houve troca
+            }
+        }
+        aux--;                                                                      // Decrementa no aux, pois o último elemento sempre estará ordenado ao fim de cada loop
+    }
+    
 }
