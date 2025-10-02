@@ -22,3 +22,4 @@ run:
 clean:
 		rm $(OBJ)/*
 		rm $(BIN)/*
+		rm ./*.bin

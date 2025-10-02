@@ -107,9 +107,9 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list);
         FILE* file => Arquivo onde os dados devem ser escritos
     
     return:
-        void
+        INDEX_ARR* idx => Arquivo de índice em memória primária;
 */
-void write_on_data_file(DATA_LIST* dlist, FILE* file);
+INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file);
 
 /*
     Preenche arquivo de dados
@@ -121,9 +121,10 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file);
     return:
         void
 */
-DATA_LIST* fill_data_file(FILE* src_file, FILE* dest_file);
+INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file);
 
 void read_from_file(const char* filename);
+
 
 
 #endif

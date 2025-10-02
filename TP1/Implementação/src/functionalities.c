@@ -32,6 +32,8 @@ void CREATE_TABLE(const char* src_filename, const char* output_filename, const c
         return;
     }
 
+    free(src_path);
+
     FILE* output_file = create_data_file(output_filename);
 
     char* index_path = get_file_path(index_filename);
@@ -39,9 +41,20 @@ void CREATE_TABLE(const char* src_filename, const char* output_filename, const c
     if(index_file == NULL)
     {
         print_error();
+        return;
     }
+    update_index_status(index_file,'0');
+    free(index_path);
 
-    DATA_LIST* dlist = fill_data_file(src_file,output_file);
+    INDEX_ARR* idx = fill_data_file(src_file,output_file);
 
-    
+    fclose(src_file);
+    fclose(output_file);
+
+    write_on_index_file(index_file,idx);
+
+    update_index_status(index_file,'1');
+
+    fclose(index_file);
+
 }

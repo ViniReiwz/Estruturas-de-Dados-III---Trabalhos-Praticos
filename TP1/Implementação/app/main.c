@@ -40,7 +40,7 @@ int main()
         case 2:
             {
                 printf("\nFuncionalidade 2\n");
-                fill_data_file("dest.bin","dados.csv");
+                CREATE_TABLE("dados.csv","saida.bin","index.bin");
                 break;
             }
         

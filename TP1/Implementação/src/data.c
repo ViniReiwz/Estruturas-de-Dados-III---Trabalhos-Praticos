@@ -215,7 +215,8 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
         }
 
         data_list->tail->next = NULL;                                               // Atribui o próximo ao ultimo nó vomo NULL
-        
+        data_list->header_reg->qtdPessoas++;                                        // Aumenta o campo quantidade de pessoas no registro de cabeçalho
+
         if(DEBUG)
         {
             printf("\nEm memória primária:\n\n");
@@ -234,8 +235,9 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
     return:
         void
 */
-void write_on_data_file(DATA_LIST* dlist, FILE* file)
-{
+INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file)
+{   
+
     if(file == NULL)
     {
         print_error();
@@ -243,16 +245,21 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file)
         {
             printf("Arquivo == NULL ao tentar escrever");
         }
-        return;
+        return NULL;
     }
 
     fseek(file,DF_HEAD_REG_LEN,SEEK_SET);
+
+    INDEX_ARR* idx = create_index_arr(dlist->header_reg->qtdPessoas);
+    int i = 0;
 
     DATA_DREG* d_reg;
     d_reg = dlist->head;
 
     while (d_reg!=NULL)
-    {   
+    {     
+        idx->idx_arr[i] = indexate(d_reg->idPessoa,ftell(file));
+
         if(DEBUG){printf("Inserindo: \n");print_ddreg(d_reg);}
         fwrite(&d_reg->removido,1,1,file);
 
@@ -270,11 +277,13 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file)
         if(d_reg->nomeUsuario != NULL)
         {fwrite(d_reg->nomeUsuario,1,d_reg->tamNomeUsuario,file);}
 
-        dlist->header_reg->qtdPessoas++;
-
         d_reg = d_reg->next;
         dlist->header_reg->proxByteOffset = ftell(file);
+        
+        i++;
     }
+
+    return idx;
 }
 
 /*
@@ -287,7 +296,7 @@ void write_on_data_file(DATA_LIST* dlist, FILE* file)
     return:
         DATA_LIST* dlist => Lista com os dados do arquivo em memória primária
 */
-DATA_LIST* fill_data_file(FILE* src_file, FILE* dest_file)
+INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file)
 {   
 
     DATA_LIST* dlist = create_data_list();                                      // Cria uma lista de dados do arquivo de dados
@@ -300,14 +309,11 @@ DATA_LIST* fill_data_file(FILE* src_file, FILE* dest_file)
 
     load_csvfile_to_mem(src_file,dlist);                                        // Carrega do arquivo fonte para a memória primária
 
-    write_on_data_file(dlist,dest_file);
-
+    INDEX_ARR* idx = write_on_data_file(dlist,dest_file);
+    
     d_hreg->status = '1';
 
     update_dheader_reg(d_hreg,dest_file);
 
-    fclose(src_file);
-    fclose(dest_file);                                                          // Fecha arquivo de destino
-
-    return  dlist;
+    return idx;
 }

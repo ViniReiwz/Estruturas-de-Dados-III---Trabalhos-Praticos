@@ -14,4 +14,6 @@
 */
 void CREATE_INDEX(const char* index_filename);
 
+void CREATE_TABLE(const char* src_filename, const char* output_filename, const char* index_filename);
+
 #endif

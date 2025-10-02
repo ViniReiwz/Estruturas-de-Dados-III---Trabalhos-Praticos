@@ -47,6 +47,14 @@ INDEX_DREG* create_index_dreg();
 */
 FILE* create_index_file(const char* filename);
 
+INDEX_ARR* create_index_arr(int len);
+
+INDEX_DREG indexate(int id, long int boffset);
+
+void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr);
+
+void update_index_status(FILE* file, char status);
+
 
 
 #endif

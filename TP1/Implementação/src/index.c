@@ -23,6 +23,14 @@ INDEX_DREG* create_index_dreg()
     return index;                                                   // Retorna o endereço da região de memória
 }
 
+INDEX_ARR* create_index_arr(int len)
+{
+    INDEX_ARR* idx = (INDEX_ARR*)calloc(1,sizeof(INDEX_ARR));
+    idx->idx_arr = (INDEX_DREG*)calloc(len,sizeof(INDEX_DREG));
+    idx->len = len;
+
+    return idx;
+}
 
 /*
     Cria um arquivo de índice primário com seu registro de cabeçalho.
@@ -81,12 +89,12 @@ FILE* create_index_file(const char* filename)
     
         return INDEX_DREG* index => registro de dados do arquivo de indíce em memória primária
 */
-INDEX_DREG* indexate(int id, long int boffset)
+INDEX_DREG indexate(int id, long int boffset)
 {
     INDEX_DREG* index = create_index_dreg();    // Cria um registro de indíce em memória primária
     index->idPessoa = id;                       // Atribui o id passado ao registro
     index->byteOffset = boffset;                // Atribui o byte offset passado ao registro
-    return index;                               // Retorna o registro de dados
+    return *index;                              // Retorna o registro de dados
 }
 
 /*
@@ -107,20 +115,12 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
         fwrite(&idxarr->idx_arr[i].idPessoa,4,1,index_file);
         fwrite(&idxarr->idx_arr[i].byteOffset,8,1,index_file);
     }
+
+    printf("\nOFFSET FINAL --> %li\n",ftell(index_file));
 }
 
-// void load_from_data_list(INDEX_ARR* idxarr, DATA_LIST* dlist)
-// {
-//     idxarr->len = dlist->header_reg->qtdPessoas;
-//     DATA_DREG* p = dlist->head;
-//     int i = 0;
-//     while (p!=NULL)
-//     {
-//         idxarr->idx_arr[i] = indexate(p->idPessoa,)
-//     }
-// }
-
-// void fill_index_file(FILE* index_file, DATA_LIST dlist)
-// {
-
-// }
+void update_index_status(FILE* file, char status)
+{
+    fseek(file,0,SEEK_SET);
+    fwrite(&status,1,1,file);
+}
