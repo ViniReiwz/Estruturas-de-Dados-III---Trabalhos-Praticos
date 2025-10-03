@@ -53,9 +53,9 @@ DATA_DREG* create_data_dreg()
     ddreg->idadePessoa = -1;                                    // Campo idade pessoa (4 bytes), iniciado em -1                                   
     ddreg->idPessoa = -1;                                       // Campo Id pessoa (4 bytes), iniciado em -1
     ddreg->removido = '0';                                      // Campo removido (1 byte), representa a remoção lógica do registro
-    ddreg->tamNomePessoa = 0;                                   // Campo Tamanho do nomePessoa (4 bytes), iniciado em 0
+    ddreg->tamNomePessoa = -1;                                   // Campo Tamanho do nomePessoa (4 bytes), iniciado em 0
     ddreg->nomePessoa = NULL;                                   // Campo nomePessoa, iniciado em NULL (tamanho variável)
-    ddreg->tamNomeUsuario = 0;                                  // Campo tamNomeUsuario, iniciado em 0 (4 bytes)
+    ddreg->tamNomeUsuario = -1;                                  // Campo tamNomeUsuario, iniciado em 0 (4 bytes)
     ddreg->nomeUsuario = NULL;                                  // Campo nomeUsuario, iniciado em NULL (tamanho variável)
     ddreg->tamReg = -1;                                         // Tamanho do registro, iniciado em 0 (4 bytes)
 
@@ -216,7 +216,7 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
     fgets(src_str,100,file);                                                        // Pula o registro de cabeçalho na leitura
 
     while (fgets(src_str,100,file) != NULL)                                         // Lê 100 bytes do arquivo (ou até '\n') enquanto não terminar
-    {
+    {   
         char** data = strip_by_delim(src_str,',');                                  // Separa as strings delimitadas por ','
 
         int n_data = atoi(data[0]);                                                 // Vê o número final de strings
@@ -236,7 +236,7 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
             data_reg->nomePessoa = (char*)calloc(data_reg->tamNomePessoa + 1,sizeof(char));     // Se for, grava o tamanho, aloca a memória e copia a string
             strcpy(data_reg->nomePessoa,data[2]);
         }
-        else{data_reg->tamNomePessoa = 0;}                                          // Se não, atribui o tamanho  como 0
+        // else{data_reg->tamNomePessoa = 0;}                                          // Se não, atribui o tamanho  como 0
 
         data_reg->idadePessoa = atoi(data[3]);                                      // Lê o idadePessoa e atribui ao nó
 
@@ -246,8 +246,9 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
             data_reg->nomeUsuario = (char*)calloc(data_reg->tamNomeUsuario + 1,sizeof(char));   // Se for, aloca a memmória e copia a string
             strcpy(data_reg->nomeUsuario,data[4]);
         }
-        else{data_reg->tamNomeUsuario = 0;}                                         // Se não, mantém null e seta o tamanho como 0
+        // else{data_reg->tamNomeUsuario = 0;}                                         // Se não, mantém null e seta o tamanho como 0
 
+        data_reg->tamReg = 21;
         data_reg->tamReg = 21 + data_reg->tamNomePessoa + data_reg->tamNomeUsuario; // Calcula o tamanho do registro (21 bytes fixos + tamanho dos campos variáveis)
 
         if(data_list->head == NULL)                                                 // Verifica se a lista está vazia
@@ -259,10 +260,10 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
             data_list->tail->next = data_reg;                                       // O último nó recebe o novo nó como próximo
             data_list->tail = data_reg;                                             // O nó cauda recebe o novo nó
         }
-
+        
         data_list->tail->next = NULL;                                               // Atribui o próximo ao ultimo nó vomo NULL
         data_list->header_reg->qtdPessoas++;                                        // Aumenta o campo quantidade de pessoas no registro de cabeçalho
-
+        
         if(DEBUG)                                                                   // Exibe os registros carregados em memória primária
         {
             printf("\nEm memória primária:\n\n");

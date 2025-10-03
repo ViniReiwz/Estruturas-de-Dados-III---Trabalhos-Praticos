@@ -15,12 +15,15 @@ int main()
     char func_str [OPT_LEN];                // Variável que armazena as entradas da funcionalidade
 
     strcpy(func_str,"");                    // Inicializa como uma string vazia
-    fgets(func_str,OPT_LEN,stdin);          // Lê as entradas do teclado, todas de uma vez       
-    
+    fgets(func_str,OPT_LEN,stdin);          // Lê as entradas do teclado, todas de uma vez 
+
+    int rmn = strcspn(func_str,"\n");       // Verifica a primeira ocorrência de\n na string (último caracter por conta do fgets) 
+    func_str[rmn] = '\0';                   // Substitui o '\n' por '\0'
+    printf("%s",func_str);
     char **args = strip_by_delim(func_str,' '); // Variável que recebe os argumentos separados
 
     int opt = atoi(args[1]);                // Transforma a opção de char para int
-
+    
     switch (opt)
     {
     case 1:

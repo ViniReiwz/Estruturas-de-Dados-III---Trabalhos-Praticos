@@ -22,7 +22,7 @@
 */
 char** strip_by_delim(const char unstriped_str[], const char delim)
 {   
-    int len = strlen(unstriped_str);                    // Atribui o tamanho da string original à 'len'
+    int len = strlen(unstriped_str) + 1;                // Atribui o tamanho da string original à 'len'
     char **args = (char**)calloc(len,sizeof(char*));    // Aloca memória suficiente para a matri de strings
     char* aux = (char*)calloc(len,sizeof(char));        // Aloca memória para um a string auxiliar
 
@@ -55,7 +55,7 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
         }
         
     }
-
+    printf("n-args --> %i",n_str);
     args[0][0] = (n_str) + '0';                         // Transforma em char o valor de n_str e atribui à posição 0,0 da matriz
     int bn = strcspn(args[mpos-1],"\n");                // Encontra na última string o último '\n'
     args[mpos-1][bn] = '\0';                            // Atribui '\0' à posição onde encontrou '\n'
