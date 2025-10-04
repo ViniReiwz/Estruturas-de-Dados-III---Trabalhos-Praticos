@@ -100,7 +100,7 @@ FILE* create_index_file(const char* filename)
 
     if(index_file_p == NULL)                            // Verifica se a abertura do arquivo não falhou
     {
-        printf("\nFalha no processamento de arquivo\n");      // Exibe mensagem de erro
+        print_error();                                  // Exibe mensagem de erro
         if(DEBUG)
         {
             printf("\nArquivo não foi criado !\n");           // Exibe mensagem de debug caso DEBUG == 1 em own_utils.h
@@ -161,7 +161,7 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
     }
 
     
-    if(DEBUG){printf("\nOFFSET FINAL --> %li\n",ftell(index_file));}    // Exibe o offset em que o ponteiro de file parou
+    if(DEBUG){printf("\nOFFSET FINAL DE INDÍCE pelo ftell --> %li\n",ftell(index_file));}    // Exibe o offset em que o ponteiro de file parou
 }
 
 /*

@@ -73,6 +73,7 @@ void CREATE_TABLE(const char* src_filename, const char* output_filename, const c
     fclose(src_file);                                       // Fecha o arquivo fonte
     
     update_file_status(output_file,'1');                    // Atualiza 'status' do arquivo de dados para '1'
+    
     fclose(output_file);                                    // Fecha o arquivo de dados
     
     write_on_index_file(index_file,idx);                    // Grava as informações d índice no arquivo de índice

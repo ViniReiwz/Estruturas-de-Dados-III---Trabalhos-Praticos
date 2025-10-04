@@ -14,7 +14,7 @@
 #define MAX_ARGS 10         // Número máximo de argumentos para cada opção
 #define ARG_LEN 50          // Tamanho médio de cada argumento
 #define FILE_DIR "./"       // Pasta em que todos os arquivos devem ser procurados ou salvos
-#define DEBUG 1             // Variável de deubg, habilita os prints nas funções
+#define DEBUG 0             // Variável de deubg, habilita os prints nas funções
 #define ERROR_MSG "Falha no processamentodo arquivo." // Variável de mensagem de erro padrão
 
 #include "all.h"
@@ -30,6 +30,18 @@
         char** args => Retorna uma "matriz de strings", onde cada posição args[i] contém o conteúdo da string separada pelo espaço.
 */
 char** strip_by_delim(const char unstriped_str[],const char delim);
+
+/*
+    Termina a string (substitui por '\0') quano encontrar a primeira ocorrência de um marcador
+
+    params:
+        char* str => String a ser terminada;
+        char mark => Marcador a ser substituído por '\0'
+    
+    return:
+        void
+*/
+void end_string_on_mark(char* str, const char mark);
 
 /*
     Exibe o menu com as funcionalidades e seus respectiovs argumentos.
@@ -88,5 +100,6 @@ char* get_file_path(const char* filename);
         void
 */
 void update_file_status(FILE* file, char status);
+
 
 #endif

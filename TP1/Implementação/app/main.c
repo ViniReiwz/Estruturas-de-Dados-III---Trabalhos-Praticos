@@ -17,10 +17,9 @@ int main()
     strcpy(func_str,"");                    // Inicializa como uma string vazia
     fgets(func_str,OPT_LEN,stdin);          // Lê as entradas do teclado, todas de uma vez 
 
-    int rmn = strcspn(func_str,"\n");       // Verifica a primeira ocorrência de\n na string (último caracter por conta do fgets) 
-    func_str[rmn] = '\0';                   // Substitui o '\n' por '\0'
-    printf("%s",func_str);
     char **args = strip_by_delim(func_str,' '); // Variável que recebe os argumentos separados
+
+    int n_args = atoi(args[0]);             // Pega o número de argumentos passados ao programa
 
     int opt = atoi(args[1]);                // Transforma a opção de char para int
     
@@ -28,7 +27,7 @@ int main()
     {
     case 1:
         {
-            if(atoi(args[0]) < 2)
+            if(n_args < 2)
             {
                 if(DEBUG)
                 {
@@ -45,7 +44,7 @@ int main()
     
     case 2:
         {
-            if(atoi(args[0]) < 4)
+            if(n_args < 4)
             {
                 if(DEBUG)
                 {

@@ -1,13 +1,29 @@
 /*
-                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
-                                
-                                Pedro Avelar Machado                XXXXXXXX
-                                Vinicius Reis Gonçalves             15491921
-*/
+TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
 
+Pedro Avelar Machado                XXXXXXXX
+                                Vinicius Reis Gonçalves             15491921
+                                */
+                               
 //Arquivo 'own_utils.c', contém funções auxiliares para a execução do código
 
 #include "all.h"
+
+/*
+    Termina a string (substitui por '\0') quano encontrar a primeira ocorrência de um marcador
+
+    params:
+        char* str => String a ser terminada;
+        char mark => Marcador a ser substituído por '\0'
+    
+    return:
+        void
+*/
+void end_string_on_mark(char* str, const char mark)
+{
+    int rm = strcspn(str,&mark);    // Encontra a posição da primeira ocorrência do marcador e a guarda em 'rm'
+    str[rm] = '\0';                     // Substitui o caracter por '\0'
+}
 
 /*
     Recebe uma string como parâmetro e a separa de acordo com os delimitadores especificados.
@@ -18,7 +34,7 @@
 
 
     return:
-        char** args => Retorna uma "matriz de strings", onde cada posição args[i] contém o conteúdo da string separada pelo espaço
+    char** args => Retorna uma "matriz de strings", onde cada posição args[i] contém o conteúdo da string separada pelo espaço
 */
 char** strip_by_delim(const char unstriped_str[], const char delim)
 {   
@@ -30,9 +46,9 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
     int n_str = 0;                                      // Número de strings separadas
 
     args[0] = (char*)calloc(4,sizeof(char));            // Aloca 4 bytes (tamanho de inteiro) para guardar o número de strings
-
+    
     int idx = 0;                                        // Indíce auxiliar
-
+    
     for(int i = 0; i < len; i ++)                       // Loop para percorrer toda a string original (unstriped)
     {
         if(unstriped_str[i] != '\0' && unstriped_str[i] != '\n' && unstriped_str[i] != delim)   // Verifica se encontrou algum destes demarcadores de 'fim da string', incluindo o delimitador
@@ -44,24 +60,25 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
         else                                            // Se encontrar:
         {
             args[mpos] = (char*)calloc(strlen(aux) + 1,sizeof(char));   // Aloca na posição mpos o sufuciente para receber a string separada
-
+            
             strcpy(args[mpos],aux);                     // Copia a string
+            // printf("args[%i] ==> %s",mpos,args[mpos]);
+
+            end_string_on_mark(args[mpos],'\n');        // Substitui '\n' por '\0'
 
             memset(aux,0,strlen(aux));                  // Reseta aux para '\0'
-
+            
             mpos ++;                                    // Incrementa a posição na matriz
             idx = 0;                                    // Reseta o índice auxiliar
             n_str ++;                                   // Incrementa o número de strings separadas
         }
         
     }
-    printf("n-args --> %i",n_str);
     args[0][0] = (n_str) + '0';                         // Transforma em char o valor de n_str e atribui à posição 0,0 da matriz
-    int bn = strcspn(args[mpos-1],"\n");                // Encontra na última string o último '\n'
-    args[mpos-1][bn] = '\0';                            // Atribui '\0' à posição onde encontrou '\n'
 
     return args;                                        // Retorna a matriz
 }
+
 
 /*
     Exibe o menu com as funcionalidades e seus respectivos argumentos para DEBUG
