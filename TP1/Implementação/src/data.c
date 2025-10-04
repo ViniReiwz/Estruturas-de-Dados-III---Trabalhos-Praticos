@@ -228,27 +228,26 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
 
         data_reg->idPessoa = atoi(data[1]);                                         // Lê o idPessoa e atribui ao nó
         
-        if(strcmp(data[2],"") != 0)                                                         // Verifica se o nome é != NULL
+        if(strcmp(data[2],"") != 0)                                                 // Verifica se o nome é != NULL
         {
             data_reg->tamNomePessoa = strlen(data[2]);
             data_reg->nomePessoa = (char*)calloc(data_reg->tamNomePessoa + 1,sizeof(char));     // Se for, grava o tamanho, aloca a memória e copia a string
             strcpy(data_reg->nomePessoa,data[2]);
         }
-        // else{data_reg->tamNomePessoa = 0;}                                          // Se não, atribui o tamanho  como 0
+        else{data_reg->tamNomePessoa = 0;}                                       // Se não, atribui o tamanho  como 0
 
         if(strcmp(data[3],"") != 0)
-        {data_reg->idadePessoa = atoi(data[3]);}                                    // Lê o idadePessoa e atribui ao nó
-        else{data_reg->idadePessoa = 0;}
+        {data_reg->idadePessoa = atoi(data[3]);}                                // Lê o idadePessoa e atribui ao nó
 
-        if(strcmp(data[4],"") != 0)                                                         // Verifica se o usuário é != NULL
+        if(strcmp(data[4],"") != 0)                                             // Verifica se o usuário é != NULL
         {
             data_reg->tamNomeUsuario = strlen(data[4]) -1;
             data_reg->nomeUsuario = (char*)calloc(data_reg->tamNomeUsuario + 1,sizeof(char));   // Se for, aloca a memmória e copia a string
             strcpy(data_reg->nomeUsuario,data[4]);
         }
-        // else{data_reg->tamNomeUsuario = 0;}                                         // Se não, mantém null e seta o tamanho como 0
+        else{data_reg->tamNomeUsuario = 0;}                                         // Se não, mantém null e seta o tamanho como 0
 
-        data_reg->tamReg = 21 + data_reg->tamNomePessoa + data_reg->tamNomeUsuario; // Calcula o tamanho do registro (21 bytes fixos + tamanho dos campos variáveis)
+        data_reg->tamReg = 16 + data_reg->tamNomePessoa + data_reg->tamNomeUsuario; // Calcula o tamanho do registro (21 bytes fixos + tamanho dos campos variáveis)
 
         if(data_list->head == NULL)                                                 // Verifica se a lista está vazia
         {
@@ -333,7 +332,7 @@ INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file)
         if(d_reg->tamNomeUsuario > 0)
         {fwrite(d_reg->nomeUsuario,1,d_reg->tamNomeUsuario,file);}      // Salva 'nomeUsuario' se o tamanho for maior que 0 (variável)
 
-        currboffset += d_reg->tamReg;                                   // Incrementa o byte offset pelo tamanho do registro
+        currboffset += d_reg->tamReg + 5;                               // Incrementa o byte offset pelo tamanho do registro
 
         d_reg = d_reg->next;                                            // Avança na lista de registros de dados
         
@@ -377,10 +376,10 @@ INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file)
         }
     }
 
-    printf("Quantidade de pessoas ==> %i\n",dlist->header_reg->qtdPessoas);
-    printf("Quantidade de pessoas removidas ==> %i\n",dlist->header_reg->qtdRemovidos);
-    printf("ProxByteOffset pelo header ==> %li\n",dlist->header_reg->proxByteOffset);
-    printf("Proxbyteoffset pelo ftell ==> %li\n",ftell(dest_file));
+    // printf("Quantidade de pessoas ==> %i\n",dlist->header_reg->qtdPessoas);
+    // printf("Quantidade de pessoas removidas ==> %i\n",dlist->header_reg->qtdRemovidos);
+    // printf("ProxByteOffset pelo header ==> %li\n",dlist->header_reg->proxByteOffset);
+    // printf("Proxbyteoffset pelo ftell ==> %li\n",ftell(dest_file));
 
 
     update_dheader_reg(d_hreg,dest_file);                   // Atualiza o cabeçalho do arquivo de dados, exceto status
