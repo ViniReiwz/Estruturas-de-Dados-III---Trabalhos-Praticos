@@ -182,7 +182,7 @@ void order_index(INDEX_ARR* index_arr)
     while (swapped)                                                                 // Atua enquanto o vetor estiver sendo alterado (ordenando-se)
     {
         swapped = 0;                                                                // Setado pra zero, logo sai do loop caso não seja atualizado
-        for(int i = 0; i < aux; i ++)                                               // Percorre todo o vetor
+        for(int i = 0; i < aux - 1; i ++)                                           // Percorre todo o vetor até que i+1 seja o último elemento
         {
             if(index_arr->idx_arr[i].idPessoa > index_arr->idx_arr[i+1].idPessoa)   // Verifica se o elemento i é > do que i + 1 (desorndenado)
             {

@@ -311,7 +311,6 @@ INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file)
         }
         
         dlist->header_reg->proxByteOffset = currboffset;                // Atualiza o próximo byte offset disponível para a escrita
-
         idx->idx_arr[i] = indexate(d_reg->idPessoa,currboffset);        // Indexa o id com o byteoffset atual
 
         if(DEBUG){printf("Inserindo: \n");print_ddreg(d_reg);}          // Exibe o registro atual na lista
@@ -339,7 +338,7 @@ INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file)
         i++;                                                            // Incrementa no índice do vetor de índices
     }
     dlist->header_reg->proxByteOffset = currboffset;                    // Atualiza pra saber a última posição do ponteiro do arquivo
-    printf("ProxByteOffset pelo currboffset ==> %li\n",currboffset);
+
     return idx;                                                         // Retorna o vetor de reigstros de dados do arquivo de índice
 }
 
