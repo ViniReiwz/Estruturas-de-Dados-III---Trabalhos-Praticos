@@ -82,9 +82,12 @@ void CREATE_TABLE(const char* src_filename, const char* output_filename, const c
 
     char* output_filepath = get_file_path(output_filename); // Pega o caminho do arquivo de dados
 
+    destroy_index_arr(idx);                                 // Libera a memória do vetor de tegistros do arquivo de indíce
+    
     binarioNaTela(output_filepath);
     binarioNaTela(index_path);
 
     free(index_path);                                       // Libera a memória da string do caminho do arquivo de índice
     free(output_filepath);                                  // Libera a memória da string do caminho de dados
+
 }

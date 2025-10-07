@@ -79,6 +79,26 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
     return args;                                        // Retorna a matriz
 }
 
+/*
+    Libera a memória da matriz com as strings separadas por algum delimitador
+
+    params:
+        char** strip_m => Matriz cuja memória deseja ser liberada
+    
+    return:
+        void
+*/
+void destroy_strip_matrix(char** strip_m)
+{
+    int len = atoi(strip_m[0]);     // Vê quantos itens tem a matriz
+    for(int i = 0; i < len; i ++)
+    {
+        free(strip_m[i]);           // Libera cada string
+    }
+
+    free(strip_m);                  // Libera a matriz
+}
+
 
 /*
     Exibe o menu com as funcionalidades e seus respectivos argumentos para DEBUG

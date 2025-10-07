@@ -74,5 +74,7 @@ int main()
             break;
         }
     }
+
+    destroy_strip_matrix(args);
     return 0;
 }

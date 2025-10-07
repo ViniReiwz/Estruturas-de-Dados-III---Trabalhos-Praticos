@@ -180,6 +180,8 @@ FILE* create_data_file(const char* filename)
     
     update_dheader_reg(dhreg,data_file_p);          // Atualiza o registro de cabeçalho
     
+    destroy_data_hreg(dhreg);                       // Libera a memória do registro de cabeçalho criado
+
     fseek(data_file_p,0,SEEK_SET);                  // Volta ao início do arquivo de dados
 
     return data_file_p;                             // Retorna o ponteiro para o arquivo
@@ -209,7 +211,7 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
     
     fseek(file,0,SEEK_SET);                                                         // Posiciona o ponteiro no oinício do arquivo de src
 
-    char* src_str = (char*)calloc(100,sizeof(char));                                // Aloca 100 bytes de memória para ler do arquivo de fonte
+    char src_str[100];                                // Aloca 100 bytes de memória para ler do arquivo de fonte
 
     fgets(src_str,100,file);                                                        // Pula o registro de cabeçalho na leitura
 
@@ -267,6 +269,8 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
             printf("\nEm memória primária:\n\n");
             print_ddreg(data_list->tail);
         }
+
+        destroy_strip_matrix(data);                                                 // Libera a memória da matriz com os dados do arquivo fonte
     }
     
 }
@@ -375,15 +379,9 @@ INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file)
         }
     }
 
-    // printf("Quantidade de pessoas ==> %i\n",dlist->header_reg->qtdPessoas);
-    // printf("Quantidade de pessoas removidas ==> %i\n",dlist->header_reg->qtdRemovidos);
-    // printf("ProxByteOffset pelo header ==> %li\n",dlist->header_reg->proxByteOffset);
-    // printf("Proxbyteoffset pelo ftell ==> %li\n",ftell(dest_file));
-
-
     update_dheader_reg(d_hreg,dest_file);                   // Atualiza o cabeçalho do arquivo de dados, exceto status
 
-    //TODO - DESTRUIR OS NÓS EM MEMÓRIA PRIMÁRIA
+    destroy_data_list(dlist);                               // Libera a memória da lista primária
 
     return idx;                                             // Retorna ponteiro para arquivo de índice em memória primária
 }

@@ -56,7 +56,7 @@ INDEX_ARR* create_index_arr(int len);
     return:
         void
 */
-void destroy_index_dreg(INDEX_DREG* idxdreg);
+// void destroy_index_dreg(INDEX_DREG* idxdreg);
 
 /*
     Libera a memória de um vetor de registros de dados do arquivo de índice na memoria primária

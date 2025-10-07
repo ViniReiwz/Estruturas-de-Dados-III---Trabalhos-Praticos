@@ -32,6 +32,17 @@
 char** strip_by_delim(const char unstriped_str[],const char delim);
 
 /*
+    Libera a memória da matriz com as strings separadas por algum delimitador
+
+    params:
+        char** strip_m => Matriz cuja memória deseja ser liberada
+    
+    return:
+        void
+*/
+void destroy_strip_matrix(char** strip_m);
+
+/*
     Termina a string (substitui por '\0') quano encontrar a primeira ocorrência de um marcador
 
     params:

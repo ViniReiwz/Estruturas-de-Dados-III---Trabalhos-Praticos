@@ -50,10 +50,10 @@ INDEX_ARR* create_index_arr(int len)
     return:
         void
 */
-void destroy_index_dreg(INDEX_DREG* idxdreg)
-{
-    free(idxdreg);
-}
+// void destroy_index_dreg(INDEX_DREG* idxdreg)
+// {
+//     free(idxdreg);
+// }
 
 /*
     Libera a memória de um vetor de registros de dados do arquivo de índice na memoria primária
@@ -66,11 +66,11 @@ void destroy_index_dreg(INDEX_DREG* idxdreg)
 */
 void destroy_index_arr(INDEX_ARR* idxarr)
 {
-    int len = idxarr->len;                          // Grava o tamanho do vetor
-    for(int i = 0; i < len ; i ++)                  // Percorre todo o cetor
-    {
-        destroy_index_dreg(&idxarr->idx_arr[i]);    // Destroi cada registro de dados presente no vetor
-    }
+    // int len = idxarr->len;                          // Grava o tamanho do vetor
+    // for(int i = 0; i < len ; i ++)                  // Percorre todo o cetor
+    // {
+    //     destroy_index_dreg(&idxarr->idx_arr[i]);    // Destroi cada registro de dados presente no vetor
+    // }
 
     free(idxarr->idx_arr);                          // Libera a memória do ponteiro propriamente dito
     free(idxarr);                                   // Libera a memória da estrutura
@@ -125,20 +125,20 @@ FILE* create_index_file(const char* filename)
 }
 
 /*
-    Relaciona o ida ao byte offset e retorna o registro de dados do arquivo de índice em memória primária
+    Relaciona o id ao byte offset e retorna o registro de dados do arquivo de índice em memória primária
 
     params:
         int id => id da pessoa cadastrada
         long int boffset => byte offser para o começo do registro de dados da pessoa com o referido id
     
-        return INDEX_DREG* index => registro de dados do arquivo de indíce em memória primária
+        return INDEX_DREG index => registro de dados do arquivo de indíce em memória primária
 */
 INDEX_DREG indexate(int id, long int boffset)
 {
-    INDEX_DREG* index = create_index_dreg();    // Cria um registro de indíce em memória primária
-    index->idPessoa = id;                       // Atribui o id passado ao registro
-    index->byteOffset = boffset;                // Atribui o byte offset passado ao registro
-    return *index;                              // Retorna o registro de dados
+    INDEX_DREG index;           // Cria um registro de indíce em memória primária
+    index.idPessoa = id;        // Atribui o id passado ao registro
+    index.byteOffset = boffset; // Atribui o byte offset passado ao registro
+    return index;               // Retorna o registro de dados
 }
 
 /*
