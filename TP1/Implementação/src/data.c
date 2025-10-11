@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -385,3 +385,62 @@ INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file)
 
     return idx;                                             // Retorna ponteiro para arquivo de índice em memória primária
 }
+
+void print_data_register(DATA_DREG data_register)
+{
+    if(data_register.removido == '0')    
+    {
+        if(data_register.idPessoa == 0)
+        {
+            printf("Dados da pessoa de codigo -\n");
+        }
+        else
+        {
+            printf("Dados da pessoa de codigo %i\n", data_register.idPessoa);
+        }
+        
+        printf("Nome: ");
+        if(data_register.tamNomePessoa > 0)
+        {    
+            for(int i = 0; i < data_register.tamNomePessoa; i++)
+            {
+                if(data_register.nomeUsuario[i] != '$')
+                {
+                    printf("%c", data_register.nomePessoa[i]);
+                }
+            }
+        }
+        else
+        {
+            printf("-");
+        }
+        printf("\n");
+
+        if(data_register.idadePessoa == -1)
+        {
+            printf("Idade: -\n");
+        }
+        else
+        {
+            printf("Idade: %i\n", data_register.idadePessoa);
+        }
+        
+        printf("Usuario: ");
+        if(data_register.tamNomeUsuario > 0)
+        {   
+            for(int i = 0; i < data_register.tamNomeUsuario; i++)
+            {
+                if(data_register.nomeUsuario[i] != '$')
+                {
+                    printf("%c", data_register.nomeUsuario[i]);
+                }
+            }
+        }
+        else
+        {
+            printf("-");
+        }
+        printf("\n\n");
+    }    
+}
+

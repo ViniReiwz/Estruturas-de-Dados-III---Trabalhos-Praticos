@@ -1,7 +1,7 @@
 /*
 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
 
-Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
                                 */
                                
@@ -22,7 +22,7 @@ Pedro Avelar Machado                XXXXXXXX
 void end_string_on_mark(char* str, const char mark)
 {
     int rm = strcspn(str,&mark);    // Encontra a posição da primeira ocorrência do marcador e a guarda em 'rm'
-    str[rm] = '\0';                     // Substitui o caracter por '\0'
+    str[rm] = '\0';                 // Substitui o caracter por '\0'
 }
 
 /*
@@ -192,4 +192,28 @@ void update_file_status(FILE* file, char status)
 {
     fseek(file,0,SEEK_SET);     // Posiciona o ponteiro no início do arquivo
     fwrite(&status,1,1,file);   // Atualiza o campo status para o char passado
+}
+
+char* remove_quotes(char* str)
+{
+    if(str == NULL || str[0] != 34)
+    {
+        return str;
+    }
+    else
+    {
+        char* str_aux = (char*)calloc(strlen(str) + 1, 1);
+
+        int j = 0;
+        for(int i = 0; i < strlen(str) + 1; i++)
+        {
+            if(str[i] != 34)
+            {
+                str_aux[j] = str[i];
+                j++;
+            }
+        }
+        str_aux[strlen(str)] = '\0';
+        return str_aux;
+    }
 }

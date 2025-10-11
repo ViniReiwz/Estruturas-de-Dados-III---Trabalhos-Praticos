@@ -2,7 +2,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -36,5 +36,9 @@ void CREATE_INDEX(const char* index_filename);
         void
 */
 void CREATE_TABLE(const char* src_filename, const char* output_filename, const char* index_filename);
+
+void SELECT_FROM_TABLE(const char* data_filename);
+
+void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, int search_number);
 
 #endif

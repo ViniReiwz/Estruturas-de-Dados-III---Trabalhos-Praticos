@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -195,4 +195,33 @@ void order_index(INDEX_ARR* index_arr)
         aux--;                                                                      // Decrementa no aux, pois o último elemento sempre estará ordenado ao fim de cada loop
     }
     
+}
+
+
+INDEX_ARR* save_index_in_mem(FILE* index_file)
+{
+    if(index_file == NULL)
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(index_file, 0, SEEK_END);
+    long index_end = ftell(index_file);
+    fseek(index_file, IDX_HEAD_REG_LEN, SEEK_SET);
+
+    int len = (index_end - 11)/12;
+
+    INDEX_ARR* idx_array = create_index_arr(len);
+
+    int i = 0;
+    while (i < len)
+    {
+        fread(&(idx_array->idx_arr[i].idPessoa), 4, 1, index_file);
+        fread(&(idx_array->idx_arr[i].byteOffset), 8, 1, index_file);
+
+        i = i + 1;
+    }
+    
+    return idx_array;
 }

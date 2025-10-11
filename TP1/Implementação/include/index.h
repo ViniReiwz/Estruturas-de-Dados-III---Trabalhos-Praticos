@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -24,7 +24,7 @@ typedef struct _index_dreg   // Registro de dados do arquivo de índice primári
 typedef struct _index_dreg_arr  // Array de registros do arquivo de indíce primário
 {
     int len;                    // Tamanho do array (n° de registros)
-    INDEX_DREG* idx_arr;       // Array propriamente dito
+    INDEX_DREG* idx_arr;        // Array propriamente dito
 
 }INDEX_ARR;
 
@@ -113,6 +113,7 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr);
 */
 void order_index(INDEX_ARR* index_arr);
 
+INDEX_ARR* save_index_in_mem(FILE* index_file);
 
 
 #endif

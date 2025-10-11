@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -111,6 +111,8 @@ char* get_file_path(const char* filename);
         void
 */
 void update_file_status(FILE* file, char status);
+
+char* remove_quotes(char* str);
 
 
 #endif

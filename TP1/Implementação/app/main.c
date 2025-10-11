@@ -1,11 +1,11 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
-//Arquivo 'index.c', contém funções que trabalham com o arquivo de índice primário
+//Arquivo 'main.c', arquivo principal que executa as funcionalidades selecionadas pelo usuário
 
 #include "all.h"
 
@@ -23,58 +23,83 @@ int main()
 
     int opt = atoi(args[1]);                // Transforma a opção de char para int
     
-    switch (opt)
+    switch (opt)                            // Switch case para identificar de qual funcionalidade se trata
     {
-    case 1:
-        {
-            if(n_args < 2)
+        case 1:                             // Funcionalidade 1:
             {
-                if(DEBUG)
+                if(n_args < 2)                  // Verifica se o nome do arquivo de índice foi passado
                 {
-                    printf("Poucos argumentos!!\n");
+                    if(DEBUG)
+                    {
+                        printf("Poucos argumentos!!\n");
+                    }
                 }
+
+                else
+                {
+                    CREATE_INDEX(args[2]);      // Executa a funcionalidade 1
+                }
+                break;
+            }
+        
+        case 2:                             // Funcionalidade 2
+            {
+                if(n_args < 4)                  // Verifica se foram passados os nome do arquivo fonte, arquivo de dados a ser criado e arquivo de índice (já existente)           
+                {
+                    if(DEBUG)
+                    {
+                        printf("Poucos argumentos!!\n");
+                    }
+                }
+                else
+                {
+                    CREATE_TABLE(args[2],args[3],args[4]);  // Executa a funcionalidade 2
+                }
+                break;
+            }
+            
+        
+        case 3:                             // Funcionalidade 3
+            {
+                if(atoi(args[0]) < 2)                       // Verifica se o nome do arquivo de dados foi passado
+                {
+                    if(DEBUG)
+                    {
+                        printf("Poucos argumentos!!\n");
+                    }
+                }
+
+                else
+                {
+                    SELECT_FROM_TABLE(args[2]);             // Executa a funcionalidade 3
+                }
+
+                break;
             }
 
-            else
+        case 4:                             // Funcionalidade 4
             {
-                CREATE_INDEX(args[2]);
-            }
-            break;
-        }
-    
-    case 2:
-        {
-            if(n_args < 4)
-            {
-                if(DEBUG)
+                if(atoi(args[0]) < 4)                       // Verifica se foram passados: Nome d arquivo de dados, nome do arquivo de índice e número de buscas a serem feitas
                 {
-                    printf("Poucos argumentos!!\n");
+                    if(DEBUG)
+                    {
+                        printf("Poucos argumentos!!\n");
+                    }
                 }
+                else
+                {
+                    SELECT_FROM_WHERE(args[2],args[3],atoi(args[4]));   // Executa a funcionalidade 4
+                }
+                
+                break;
             }
-            else
+            
+        default:
             {
-                CREATE_TABLE(args[2],args[3],args[4]);
+                break;                      // Caso não seja uma opção valida, apenas sai do programa
             }
-            break;
-        }
-        
-    
-    case 3:
-        {
-            break;
-        }
-
-    case 4:
-        {
-            break;
-        }
-        
-    default:
-        {
-            break;
-        }
     }
 
-    destroy_strip_matrix(args);
-    return 0;
+    destroy_strip_matrix(args);             // Libera a memória da matriz de strings
+    return 0;                               // Encerra o programa
 }

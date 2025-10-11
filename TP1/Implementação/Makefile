@@ -1,3 +1,10 @@
+#                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+#                             
+#                                 Pedro Avelar Machado                15497396
+#                                 Vinicius Reis Gonçalves             15491921
+
+# Arquivo MAKEFILE, contém os comandos de compilaçãoe execução exigidos para o trabalho além de alguns adicionais para faciidade de manipulação dos arquivos fonte do código
+
 OBJ = ./obj
 SRC = ./src
 INC = ./include
@@ -7,14 +14,14 @@ BIN = ./bin
 all: libed myapps
 
 libed:
-		gcc -c $(SRC)/data.c -I $(INC) -o $(OBJ)/data.o
-		gcc -c $(SRC)/index.c -I $(INC) -o $(OBJ)/index.o
-		gcc -c $(SRC)/utilidades.c -I $(INC) -o $(OBJ)/utilidades.o
-		gcc -c $(SRC)/own_utils.c -I $(INC) -o $(OBJ)/own_utils.o
-		gcc -c $(SRC)/functionalities.c -I $(INC) -o $(OBJ)/functionalities.o
+		gcc -ggdb -c $(SRC)/data.c -I $(INC) -o $(OBJ)/data.o
+		gcc -ggdb -c $(SRC)/index.c -I $(INC) -o $(OBJ)/index.o
+		gcc -ggdb -c $(SRC)/utilidades.c -I $(INC) -o $(OBJ)/utilidades.o
+		gcc -ggdb -c $(SRC)/own_utils.c -I $(INC) -o $(OBJ)/own_utils.o
+		gcc -ggdb -c $(SRC)/functionalities.c -I $(INC) -o $(OBJ)/functionalities.o
 
 myapps:
-		gcc $(APP)/main.c $(OBJ)/*.o -I $(INC) -o $(BIN)/main
+		gcc -ggdb $(APP)/main.c $(OBJ)/*.o -I $(INC) -o $(BIN)/main
 
 run:
 		./$(BIN)/main

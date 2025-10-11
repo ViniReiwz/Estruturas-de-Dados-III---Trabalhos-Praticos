@@ -1,3 +1,12 @@
+/*
+                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+                                
+                                Pedro Avelar Machado                15497396
+                                Vinicius Reis Gonçalves             15491921
+*/
+
+//Arquivo 'utilidades.h', contém as definições das funções auxiliares fornecidas pelos avaliadores
+
 #ifndef UTILS_H
 #define UTILS_H
 

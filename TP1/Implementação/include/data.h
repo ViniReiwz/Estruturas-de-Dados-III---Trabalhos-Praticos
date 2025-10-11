@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -163,5 +163,7 @@ INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file);
         INDEX_ARR* idx => Vetor contendo os registros de dados do arquivo de indíce relacionado ao arquivo de dados, já ordenado
 */
 INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file);
+
+void print_data_register(DATA_DREG data_register);
 
 #endif

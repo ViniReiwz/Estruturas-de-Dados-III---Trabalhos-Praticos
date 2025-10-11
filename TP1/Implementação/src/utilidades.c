@@ -1,3 +1,12 @@
+/*
+                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+                                
+                                Pedro Avelar Machado                15497396
+                                Vinicius Reis Gonçalves             15491921
+*/
+
+//Arquivo 'utilidades.c', contém as funções auxiliares fornecidas pelos avaliadores
+
 #include "utilidades.h"
 
 
