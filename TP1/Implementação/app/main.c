@@ -1,11 +1,11 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                15497396
+                                Pedro Avelar Machado                XXXXXXXX
                                 Vinicius Reis Gonçalves             15491921
 */
 
-//Arquivo 'main.c', arquivo principal que executa as funcionalidades selecionadas pelo usuário
+//Arquivo 'index.c', contém funções que trabalham com o arquivo de índice primário
 
 #include "all.h"
 
@@ -23,83 +23,83 @@ int main()
 
     int opt = atoi(args[1]);                // Transforma a opção de char para int
     
-    switch (opt)                            // Switch case para identificar de qual funcionalidade se trata
+    switch (opt)
     {
-        case 1:                             // Funcionalidade 1:
+    case 1:
+        {
+            if(n_args < 2)
             {
-                if(n_args < 2)                  // Verifica se o nome do arquivo de índice foi passado
+                if(DEBUG)
                 {
-                    if(DEBUG)
-                    {
-                        printf("Poucos argumentos!!\n");
-                    }
+                    printf("Poucos argumentos!!\n");
                 }
-
-                else
-                {
-                    CREATE_INDEX(args[2]);      // Executa a funcionalidade 1
-                }
-                break;
             }
-        
-        case 2:                             // Funcionalidade 2
+
+            else
             {
-                if(n_args < 4)                  // Verifica se foram passados os nome do arquivo fonte, arquivo de dados a ser criado e arquivo de índice (já existente)           
+                CREATE_INDEX(args[2]);
+            }
+            break;
+        }
+    
+    case 2:
+        {
+            if(n_args < 4)
+            {
+                if(DEBUG)
                 {
-                    if(DEBUG)
-                    {
-                        printf("Poucos argumentos!!\n");
-                    }
+                    printf("Poucos argumentos!!\n");
                 }
-                else
+            }
+            else
+            {
+                CREATE_TABLE(args[2],args[3],args[4]);
+            }
+            break;
+        }
+        
+    
+    case 3:
+        {
+            if(atoi(args[0]) < 2)
+            {
+                if(DEBUG)
                 {
-                    CREATE_TABLE(args[2],args[3],args[4]);  // Executa a funcionalidade 2
+                    printf("Poucos argumentos!!\n");
                 }
-                break;
+            }
+
+            else
+            {
+                SELECT_FROM_TABLE(args[2]);
+            }
+
+            break;
+        }
+
+    case 4:
+        {
+            if(atoi(args[0]) < 4)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                SELECT_FROM_WHERE(args[2],args[3],atoi(args[4]));
             }
             
+            break;
+        }
         
-        case 3:                             // Funcionalidade 3
-            {
-                if(atoi(args[0]) < 2)                       // Verifica se o nome do arquivo de dados foi passado
-                {
-                    if(DEBUG)
-                    {
-                        printf("Poucos argumentos!!\n");
-                    }
-                }
-
-                else
-                {
-                    SELECT_FROM_TABLE(args[2]);             // Executa a funcionalidade 3
-                }
-
-                break;
-            }
-
-        case 4:                             // Funcionalidade 4
-            {
-                if(atoi(args[0]) < 4)                       // Verifica se foram passados: Nome d arquivo de dados, nome do arquivo de índice e número de buscas a serem feitas
-                {
-                    if(DEBUG)
-                    {
-                        printf("Poucos argumentos!!\n");
-                    }
-                }
-                else
-                {
-                    SELECT_FROM_WHERE(args[2],args[3],atoi(args[4]));   // Executa a funcionalidade 4
-                }
-                
-                break;
-            }
-            
-        default:
-            {
-                break;                      // Caso não seja uma opção valida, apenas sai do programa
-            }
+    default:
+        {
+            break;
+        }
     }
 
-    destroy_strip_matrix(args);             // Libera a memória da matriz de strings
-    return 0;                               // Encerra o programa
+    destroy_strip_matrix(args);
+    return 0;
 }

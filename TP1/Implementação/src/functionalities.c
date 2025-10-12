@@ -2,7 +2,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                15497396
+                                Pedro Avelar Machado                XXXXXXXX
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -92,17 +92,36 @@ void CREATE_TABLE(const char* src_filename, const char* output_filename, const c
 
 }
 
-int SELECT(FILE* data_file, long byte_offset)
-{
-    fseek(data_file, byte_offset, SEEK_SET);
-    
-    DATA_DREG* data_register = create_data_dreg();
+/* 
+    Recebe um arquivo já aberto e puxa para a memória primária o conteúdo de um registro,
+    printanto-o se ele não estiver removido. Retorna quantos bytes foram lidos.
 
-    fread(&(data_register->removido), 1, 1, data_file);
+    params:
+        const FILE* data_file => Arquivo fonte dos dados (já existente)
+        const long byte_offset => Byte offset do registro
+
+    return:
+        int size_selected => Número de bytes lidos
+
+*/
+
+int SELECT(FILE* const data_file, long const byte_offset)
+{
+    if(data_file ==  NULL)  //testa se o arquivo existe
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    
+    fseek(data_file, byte_offset, SEEK_SET); //posiciona o cursor do arquivo no primeiro byte do registro
+    
+    DATA_DREG* data_register = create_data_dreg(); //cria uma variável de registro
+
+    fread(&(data_register->removido), 1, 1, data_file); //Começa a ler os parâmetros
     fread(&(data_register->tamReg), 4, 1, data_file);
 
-    int size_selected = data_register->tamReg + 5;
-    if(data_register->removido == '1')
+    int size_selected = data_register->tamReg + 5;  //Quantidade de bytes lidos
+    if(data_register->removido == '1')  // Caso o arquivo seja removido, sai da função
     {
         return size_selected;
     }
@@ -111,52 +130,62 @@ int SELECT(FILE* data_file, long byte_offset)
     fread(&(data_register->idadePessoa), 4, 1, data_file);
         
     fread(&(data_register->tamNomePessoa), 4, 1, data_file);
-    if(data_register->tamNomePessoa > 0)
+    if(data_register->tamNomePessoa > 0) //Caso a pessoa tenha nome ele será lido
     {
         data_register->nomePessoa = (char*)calloc(1, data_register->tamNomePessoa);
         fread(data_register->nomePessoa, data_register->tamNomePessoa, 1, data_file);
     }
 
     fread(&(data_register->tamNomeUsuario), 4, 1, data_file);
-    if(data_register->tamNomeUsuario > 0)
+    if(data_register->tamNomeUsuario > 0) //Caso o usuário tenha nome ele será lido
     {
         data_register->nomeUsuario = (char*)calloc(1, data_register->tamNomeUsuario);
         fread(data_register->nomeUsuario, data_register->tamNomeUsuario, 1, data_file);
     }
 
-    print_data_register(*data_register);
-    destroy_data_dreg(data_register);
+    print_data_register(*data_register); //printa o registro
+    destroy_data_dreg(data_register);   //Destroi e apaga o registro da memória primária
 
     return size_selected;
 }
 
+/* 
+    Recebe o nome do arquivo de dados, abre-o para leitura, caso exista, e printa seus registros 
+
+    params:
+        const char* data_filename => nome do arquivo a ser aberto
+
+    return:
+        void
+
+*/
+
 void SELECT_FROM_TABLE(const char* data_filename)
 {
-    char* data_path = get_file_path(data_filename);
-    FILE* data_file = fopen(data_path, "rb");
+    char* data_path = get_file_path(data_filename); //Puxa o caminho do arquivo
+    FILE* data_file = fopen(data_path, "rb");   //Abre o arquivo para leitura
 
-    if(data_file == NULL)
+    if(data_file == NULL)   //Testa se a abertura foi bem sucedida
     {
-        print_error();
+        print_error();  //Printa a mensagem de erro e retorna
         return;
     }
     free(data_path);
 
-    fseek(data_file, 9, SEEK_SET);
+    fseek(data_file, 9, SEEK_SET);  //Coloca o cursor de arquivos de dados no byte offset
+    long final_byte;                // do cabeçalho contendo próximo byte offset livre
+    fread(&final_byte, 8, 1, data_file);    //Pega o próximo byte offset livre (fim do arquivo)
 
-    long final_byte;
-    fread(&final_byte, 8, 1, data_file);
+    long current_byte = DF_HEAD_REG_LEN;    // coloca byte atual logo após o cabeçalho
+    fseek(data_file, DF_HEAD_REG_LEN, SEEK_SET);    //coloca o cursor logo após o cabeçalho
 
-    long current_byte = DF_HEAD_REG_LEN;
-    fseek(data_file, DF_HEAD_REG_LEN, SEEK_SET);
-
-    if(current_byte == final_byte)
+    if(current_byte == final_byte)  // caso não houver nenhum registro, sai da função
     {
         printf("Registro inexistente.");
         return;
     }
 
-    while(current_byte < final_byte)
+    while(current_byte < final_byte) //enquanto ainda há registro, printa o registro atual
     {
         int register_size = SELECT(data_file, current_byte);
         current_byte = current_byte + register_size;
@@ -165,13 +194,28 @@ void SELECT_FROM_TABLE(const char* data_filename)
     fclose(data_file); 
 }
 
+/* 
+    Recebe o número de pesquisas a serem feitas e o nome do arquivo de dados,
+    abre-o para leitura, caso exista, e recebe o tipo do campo e o valor do campo
+    para usar na pesquisa, caso seja feita a pesquisa por ID, usa o arquivo de indice
+
+    params:
+        const char* data_filename => nome do arquivo de dados a ser aberto
+        const char* index_filename => nome do arquivo de index caso seja nescessário
+        int search number => número de pesquisas a serem feitas
+
+    return:
+        void
+
+*/
+
 void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, int search_number)
 {
-    char *data_path = get_file_path(data_filename);  
-    FILE* data_file = fopen(data_path, "rb");
+    char *data_path = get_file_path(data_filename);  // Pega o caminho do arquivo de dados e
+    FILE* data_file = fopen(data_path, "rb");        // abre-o para leitura
     free(data_path);
 
-    if(data_file == NULL)
+    if(data_file == NULL)   //caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
     {
         print_error();
         return;
@@ -181,22 +225,22 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
 
     for(int i = 1; i <= search_number; i++)
     {   
-        char str_in[50];
-        fgets(str_in , 50, stdin);
+        char str_in[50];    //Interage com usuário, pegando uma string do tipo
+        fgets(str_in , 50, stdin);  //"n tipoCampo=Valor"
 
-        char** type_and_value = strip_by_delim(str_in, '=');
-        char** number_type = strip_by_delim(type_and_value[1], ' ');
+        char** type_and_value = strip_by_delim(str_in, '=');    //separa o tipo e valor
+        char** number_type = strip_by_delim(type_and_value[1], ' ');    //separa o tipo do número
 
-        type_and_value[2] = remove_quotes(type_and_value[2]);
+        type_and_value[2] = remove_quotes(type_and_value[2]); //remove as aspas do valor
 
-        long final_byte;
-        fseek(data_file, 9, SEEK_SET);
-        fread(&final_byte, 8, 1, data_file);
+        long final_byte;                //Coloca o cursor de arquivos de dados no byte offset
+        fseek(data_file, 9, SEEK_SET); // do cabeçalho contendo próximo byte offset livre
+        fread(&final_byte, 8, 1, data_file);   //Pega o próximo byte offset livre (fim do arquivo)
 
-        long current_byte = DF_HEAD_REG_LEN;
-        fseek(data_file, DF_HEAD_REG_LEN, SEEK_SET);
+        long current_byte = DF_HEAD_REG_LEN;     // coloca byte atual logo após o cabeçalho
+        fseek(data_file, DF_HEAD_REG_LEN, SEEK_SET);     //coloca o cursor logo após o cabeçalho
 
-        int FLAG = 1;
+        int FLAG = 1; //FLAG para saber se a pesquisa achou ou não algum registro válido
 
         if(strcmp("idadePessoa", number_type[2]) == 0)
         {   
@@ -205,14 +249,15 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                 int age;
                 int size;
 
-                fseek(data_file, current_byte + 1, SEEK_SET);
+                fseek(data_file, current_byte + 1, SEEK_SET);   //Pega o tamanho do registro
                 fread(&size, 4, 1, data_file);
-                size = size + 5;
+                size = size + 5;    //adiciona 5, pois o tamanho do arquivo não conta os 5
+                                    //primeiros bytes (removido e tam_registro)
 
-                fseek(data_file, current_byte + 9, SEEK_SET);
+                fseek(data_file, current_byte + 9, SEEK_SET);   //Pega a idade da pessoa no registro
                 fread(&age, 4, 1, data_file);
 
-                if(age == atoi(type_and_value[2]))
+                if(age == atoi(type_and_value[2]))  
                 {
                     SELECT(data_file, current_byte);
                     FLAG = 0;
@@ -245,8 +290,10 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                 name = (char*)calloc(1, size_name);
                 fseek(data_file, current_byte + 17, SEEK_SET);
                 fread(name, size_name, 1, data_file);
-                end_string_on_mark(type_and_value[2],'\n');
-                end_string_on_mark(type_and_value[2],'\r');
+
+                end_string_on_mark(type_and_value[2], '\n');
+                end_string_on_mark(type_and_value[2], '\r');
+
                 if(strcmp(name, type_and_value[2]) == 0)
                 {
                     SELECT(data_file, current_byte);
@@ -263,8 +310,7 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
             //printf("\n");
         }
         else if(strcmp("nomeUsuario", number_type[2]) == 0)
-        {   
-            puts("Entrou nome usuario");
+        {
             while (current_byte < final_byte)
             {
                 char* name;
@@ -285,6 +331,9 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                 name = (char*)calloc(1, size_name);
                 fseek(data_file, current_byte + 21 + size_name_person, SEEK_SET);
                 fread(name, size_name, 1, data_file);
+
+                end_string_on_mark(type_and_value[2], '\n');
+                end_string_on_mark(type_and_value[2], '\r');
 
                 if(strcmp(name, type_and_value[2]) == 0)
                 {

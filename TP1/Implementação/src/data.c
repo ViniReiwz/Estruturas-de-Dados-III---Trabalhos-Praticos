@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                15497396
+                                Pedro Avelar Machado                XXXXXXXX
                                 Vinicius Reis Gonçalves             15491921
 */
 

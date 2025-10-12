@@ -1,7 +1,7 @@
 /*
 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
 
-                                Pedro Avelar Machado                15497396
+Pedro Avelar Machado                XXXXXXXX
                                 Vinicius Reis Gonçalves             15491921
                                 */
                                
@@ -22,7 +22,7 @@ TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
 void end_string_on_mark(char* str, const char mark)
 {
     int rm = strcspn(str,&mark);    // Encontra a posição da primeira ocorrência do marcador e a guarda em 'rm'
-    str[rm] = '\0';                 // Substitui o caracter por '\0'
+    str[rm] = '\0';                     // Substitui o caracter por '\0'
 }
 
 /*
@@ -213,7 +213,7 @@ char* remove_quotes(char* str)
                 j++;
             }
         }
-        str_aux[strlen(str)] = '\0';
+
         return str_aux;
     }
 }

@@ -1,10 +1,3 @@
-#                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
-#                             
-#                                 Pedro Avelar Machado                15497396
-#                                 Vinicius Reis Gonçalves             15491921
-
-# Arquivo MAKEFILE, contém os comandos de compilaçãoe execução exigidos para o trabalho além de alguns adicionais para faciidade de manipulação dos arquivos fonte do código
-
 OBJ = ./obj
 SRC = ./src
 INC = ./include
