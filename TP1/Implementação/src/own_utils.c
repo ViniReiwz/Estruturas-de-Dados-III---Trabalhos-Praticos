@@ -188,32 +188,43 @@ char* get_file_path(const char* filename)
     return:
         void
 */
+
 void update_file_status(FILE* file, char status)
 {
     fseek(file,0,SEEK_SET);     // Posiciona o ponteiro no início do arquivo
     fwrite(&status,1,1,file);   // Atualiza o campo status para o char passado
 }
 
+/*
+    Remove as aspas de uma string passada, caso tenha aspas
+
+    params:
+        char* str => string com aspas a serem retiradas
+    
+    return:
+        char* str_wo_comma => string sem aspas
+*/
+
 char* remove_quotes(char* str)
 {
-    if(str == NULL || str[0] != 34)
+    if(str == NULL || str[0] != 34) //se a string for nula ou não começar com aspas, sai da função
     {
         return str;
     }
     else
     {
-        char* str_aux = (char*)calloc(strlen(str) + 1, 1);
+        char* str_wo_comma = (char*)calloc(strlen(str) + 1, 1); 
 
         int j = 0;
         for(int i = 0; i < strlen(str) + 1; i++)
         {
-            if(str[i] != 34)
+            if(str[i] != 34)    //caso seja aspas não copia
             {
-                str_aux[j] = str[i];
+                str_wo_comma[j] = str[i]; //copia caracter por caracter, desde que não seja aspas
                 j++;
             }
         }
 
-        return str_aux;
+        return str_wo_comma;
     }
 }

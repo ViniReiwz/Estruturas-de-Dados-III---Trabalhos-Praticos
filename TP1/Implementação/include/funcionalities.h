@@ -37,7 +37,33 @@ void CREATE_INDEX(const char* index_filename);
 */
 void CREATE_TABLE(const char* src_filename, const char* output_filename, const char* index_filename);
 
+/* 
+    Recebe o nome do arquivo de dados, abre-o para leitura, caso exista, e printa seus registros 
+
+    params:
+        const char* data_filename => nome do arquivo a ser aberto
+
+    return:
+        void
+
+*/
+
 void SELECT_FROM_TABLE(const char* data_filename);
+
+/* 
+    Recebe o número de pesquisas a serem feitas e o nome do arquivo de dados,
+    abre-o para leitura, caso exista, e recebe o tipo do campo e o valor do campo
+    para usar na pesquisa, caso seja feita a pesquisa por ID, usa o arquivo de indice
+
+    params:
+        const char* data_filename => nome do arquivo de dados a ser aberto
+        const char* index_filename => nome do arquivo de index caso seja nescessário
+        int search number => número de pesquisas a serem feitas
+
+    return:
+        void
+
+*/
 
 void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, int search_number);
 

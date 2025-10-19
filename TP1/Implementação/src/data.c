@@ -386,9 +386,19 @@ INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file)
     return idx;                                             // Retorna ponteiro para arquivo de índice em memória primária
 }
 
+/*
+    Printa um registro de dados para o usuário assim como foi pedido
+
+    params:
+        DATA_DREG data_register => registro de dados a ser printado
+    
+    return:
+        void
+*/
+
 void print_data_register(DATA_DREG data_register)
 {
-    if(data_register.removido == '0')    
+    if(data_register.removido == '0')    //Testa se está removido, se não, sai da função
     {
         if(data_register.idPessoa == 0)
         {
@@ -400,11 +410,11 @@ void print_data_register(DATA_DREG data_register)
         }
         
         printf("Nome: ");
-        if(data_register.tamNomePessoa > 0)
+        if(data_register.tamNomePessoa > 0) //Testa se há nome
         {    
             for(int i = 0; i < data_register.tamNomePessoa; i++)
             {
-                if(data_register.nomeUsuario[i] != '$')
+                if(data_register.nomeUsuario[i] != '$') //Testa se é lixo
                 {
                     printf("%c", data_register.nomePessoa[i]);
                 }
@@ -430,7 +440,7 @@ void print_data_register(DATA_DREG data_register)
         {   
             for(int i = 0; i < data_register.tamNomeUsuario; i++)
             {
-                if(data_register.nomeUsuario[i] != '$')
+                if(data_register.nomeUsuario[i] != '$') //Testa se é lixo
                 {
                     printf("%c", data_register.nomeUsuario[i]);
                 }

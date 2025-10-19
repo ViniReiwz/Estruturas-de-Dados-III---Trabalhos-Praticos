@@ -112,6 +112,16 @@ char* get_file_path(const char* filename);
 */
 void update_file_status(FILE* file, char status);
 
+/*
+    Remove as aspas de uma string passada, caso tenha aspas
+
+    params:
+        char* str => string com aspas a serem retiradas
+    
+    return:
+        char* str_wo_comma => string sem aspas
+*/
+
 char* remove_quotes(char* str);
 
 

@@ -99,13 +99,14 @@ void CREATE_TABLE(const char* src_filename, const char* output_filename, const c
     params:
         const FILE* data_file => Arquivo fonte dos dados (já existente)
         const long byte_offset => Byte offset do registro
+        int* NO_REGISTER => Zero caso o registro não esteja removido
 
     return:
         int size_selected => Número de bytes lidos
 
 */
 
-int SELECT(FILE* const data_file, long const byte_offset)
+int SELECT(FILE* const data_file, long const byte_offset, int *NO_REGISTER)
 {
     if(data_file ==  NULL)  //testa se o arquivo existe
     {
@@ -125,6 +126,8 @@ int SELECT(FILE* const data_file, long const byte_offset)
     {
         return size_selected;
     }
+
+    *NO_REGISTER = 0;
 
     fread(&(data_register->idPessoa), 4, 1, data_file);
     fread(&(data_register->idadePessoa), 4, 1, data_file);
@@ -179,6 +182,8 @@ void SELECT_FROM_TABLE(const char* data_filename)
     long current_byte = DF_HEAD_REG_LEN;    // coloca byte atual logo após o cabeçalho
     fseek(data_file, DF_HEAD_REG_LEN, SEEK_SET);    //coloca o cursor logo após o cabeçalho
 
+    int NO_REGISTER = 1;
+
     if(current_byte == final_byte)  // caso não houver nenhum registro, sai da função
     {
         printf("Registro inexistente.");
@@ -187,8 +192,14 @@ void SELECT_FROM_TABLE(const char* data_filename)
 
     while(current_byte < final_byte) //enquanto ainda há registro, printa o registro atual
     {
-        int register_size = SELECT(data_file, current_byte);
+        int register_size = SELECT(data_file, current_byte, &NO_REGISTER);
         current_byte = current_byte + register_size;
+    }
+
+    if(NO_REGISTER) //caso houver registros, mas estiverem removidos
+    {
+        printf("Registro inexistente.");
+        return;
     }
 
     fclose(data_file); 
@@ -219,7 +230,7 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
     {
         print_error();
         return;
-    }
+    }   
 
     FILE* index_file = NULL;
 
@@ -232,6 +243,9 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
         char** number_type = strip_by_delim(type_and_value[1], ' ');    //separa o tipo do número
 
         type_and_value[2] = remove_quotes(type_and_value[2]); //remove as aspas do valor
+
+        end_string_on_mark(type_and_value[2], '\n');    //retira o '\n' e o '\r' das strings
+        end_string_on_mark(type_and_value[2], '\r');    //lidas
 
         long final_byte;                //Coloca o cursor de arquivos de dados no byte offset
         fseek(data_file, 9, SEEK_SET); // do cabeçalho contendo próximo byte offset livre
@@ -257,22 +271,20 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                 fseek(data_file, current_byte + 9, SEEK_SET);   //Pega a idade da pessoa no registro
                 fread(&age, 4, 1, data_file);
 
-                if(age == atoi(type_and_value[2]))  
+                if(age == atoi(type_and_value[2]))  //Printa na tela os registros cuja idade é igual
                 {
-                    SELECT(data_file, current_byte);
-                    FLAG = 0;
+                    SELECT(data_file, current_byte, &FLAG);
                 }
 
                 current_byte = current_byte + size;
             }
 
-            if(FLAG)
+            if(FLAG)    //Se não houver registro
             {
                 printf("Registro inexistente.\n\n");
             }
-            //printf("\n");
         }
-        else if(strcmp("nomePessoa", number_type[2]) == 0)
+        else if(strcmp("nomePessoa", number_type[2]) == 0)  
         {
             while (current_byte < final_byte)
             {
@@ -280,24 +292,21 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                 int size_name;
                 int size;
 
-                fseek(data_file, current_byte + 1, SEEK_SET);
-                fread(&size, 4, 1, data_file);
-                size = size + 5;
+                fseek(data_file, current_byte + 1, SEEK_SET);   //Pega o tamanho de registro
+                fread(&size, 4, 1, data_file); //adiciona 5, pois o tamanho do arquivo não conta os 5
+                size = size + 5;               //primeiros bytes (removido e tam_registro)
+                
 
-                fseek(data_file, current_byte + 13, SEEK_SET);
+                fseek(data_file, current_byte + 13, SEEK_SET);  //Pega o tamanho do campo nomePessoa
                 fread(&size_name, 4, 1, data_file);
 
-                name = (char*)calloc(1, size_name);
+                name = (char*)calloc(1, size_name); //Pega o nomePessoa
                 fseek(data_file, current_byte + 17, SEEK_SET);
                 fread(name, size_name, 1, data_file);
 
-                end_string_on_mark(type_and_value[2], '\n');
-                end_string_on_mark(type_and_value[2], '\r');
-
-                if(strcmp(name, type_and_value[2]) == 0)
+                if(strcmp(name, type_and_value[2]) == 0)     //Printa na tela os registros cuja nomePessoa é igual
                 {
-                    SELECT(data_file, current_byte);
-                    FLAG = 0;
+                    SELECT(data_file, current_byte, &FLAG);
                 }
 
                 current_byte = current_byte + size;
@@ -307,7 +316,6 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
             {
                 printf("Registro inexistente.\n\n");
             }
-            //printf("\n");
         }
         else if(strcmp("nomeUsuario", number_type[2]) == 0)
         {
@@ -318,27 +326,23 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                 int size_name_person;
                 int size;
 
-                fseek(data_file, current_byte + 1, SEEK_SET);
+                fseek(data_file, current_byte + 1, SEEK_SET);   //Pega o tamanho do registro
                 fread(&size, 4, 1, data_file);
                 size = size + 5;
 
-                fseek(data_file, current_byte + 13, SEEK_SET);
-                fread(&size_name_person, 4, 1, data_file);
+                fseek(data_file, current_byte + 13, SEEK_SET);  //Pega o tamanho do nome Pessoa
+                fread(&size_name_person, 4, 1, data_file);  //faz isso para poder navegar pelo registro
 
-                fseek(data_file, current_byte + 17 + size_name_person, SEEK_SET);
+                fseek(data_file, current_byte + 17 + size_name_person, SEEK_SET);   //pega o tamanho do nome Usuario
                 fread(&size_name, 4, 1, data_file);
 
-                name = (char*)calloc(1, size_name);
+                name = (char*)calloc(1, size_name);     //pega o nomeUsuario
                 fseek(data_file, current_byte + 21 + size_name_person, SEEK_SET);
                 fread(name, size_name, 1, data_file);
 
-                end_string_on_mark(type_and_value[2], '\n');
-                end_string_on_mark(type_and_value[2], '\r');
-
-                if(strcmp(name, type_and_value[2]) == 0)
+                if(strcmp(name, type_and_value[2]) == 0)   
                 {
-                    SELECT(data_file, current_byte);
-                    FLAG = 0;
+                    SELECT(data_file, current_byte, &FLAG);
                 }
 
                 current_byte = current_byte + size;
@@ -352,33 +356,34 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
         }
         else if(strcmp("idPessoa", number_type[2]) == 0)
         {
-            char *index_path = get_file_path(index_filename);  
-            index_file = fopen(index_path, "rb");
-            free(index_path);
-
+            if(index_file == NULL)  //abre o arquivo de indice caso ele não estivesse aberto ainda 
+            {
+                char *index_path = get_file_path(index_filename);  
+                index_file = fopen(index_path, "rb");
+                free(index_path);
+            }
+        
             int id = atoi(type_and_value[2]);
 
-            INDEX_ARR *idx_array = save_index_in_mem(index_file);
+            INDEX_ARR *idx_array = save_index_in_mem(index_file); //puxa o indice para memória primária
             int len = idx_array->len;
 
             int left = 0;
             int right = len - 1;
             int middle;
 
+            //BUSCA BINÀRIA
+
             while(1)
             {
-                middle = left + (right - left)/2;
+                middle = left + (right - left)/2;   //calcula o meio
 
-                if(left == right)
-                {
+                if(left == right || idx_array->idx_arr[middle].idPessoa == id)   //caso as extremidades sejam iguais sai do while
+                {                                                               // ou caso o conteudo do meio seja igual ao id
                     break;
                 }
-
-                if(idx_array->idx_arr[middle].idPessoa == id)
-                {
-                    break;
-                }
-                else if(idx_array->idx_arr[middle].idPessoa > id)
+                //O meio mais ou menos um vira a nova esquerda ou direita, respectivamente
+                else if(idx_array->idx_arr[middle].idPessoa > id)   
                 {
                     right = middle - 1;
                 }
@@ -387,24 +392,34 @@ void SELECT_FROM_WHERE(const char* data_filename, const char* index_filename, in
                     left = middle + 1;
                 }
             }
+            int FLAG = 1;
 
+            //Caso o meio não seja o id no fim do processo printa "Registro inexistente."
             if(idx_array->idx_arr[middle].idPessoa != id)
             {
                 printf("Registro inexistente.\n");
             }
-            else
+            else    //Caso o contrario printa o registro
             {
                 long byte_offset = idx_array->idx_arr[middle].byteOffset;
-                SELECT(data_file, byte_offset);
+                SELECT(data_file, byte_offset, &FLAG);
             }
 
-            destroy_index_arr(idx_array);
+            if(FLAG) //Caso o registro seja encontrado, mas esteja logicamente removido
+            {
+                printf("Registro inexistente.\n");
+            }
+
+            destroy_index_arr(idx_array);   // Desaloca memória
         }
         else
         {
             printf("Opção Inválida");
             return;
         }
+        // Desaloca memória
+        destroy_strip_matrix(type_and_value);
+        destroy_strip_matrix(number_type);
     }
 
     fclose(data_file);

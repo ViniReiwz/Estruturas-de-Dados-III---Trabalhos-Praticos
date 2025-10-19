@@ -164,6 +164,16 @@ INDEX_ARR* write_on_data_file(DATA_LIST* dlist, FILE* file);
 */
 INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file);
 
+/*
+    Printa um registro de dados para o usuário assim como foi pedido
+
+    params:
+        DATA_DREG data_register => registro de dados a ser printado
+    
+    return:
+        void
+*/
+
 void print_data_register(DATA_DREG data_register);
 
 #endif

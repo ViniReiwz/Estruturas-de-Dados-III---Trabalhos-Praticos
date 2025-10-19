@@ -25,5 +25,4 @@ clean:
 		rm ./*.bin
 
 zip:
-
 		zip -r code.zip $(SRC) $(APP) $(BIN) $(INC) $(OBJ) Makefile
