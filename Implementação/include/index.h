@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -112,6 +112,16 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr);
         void
 */
 void order_index(INDEX_ARR* index_arr);
+
+/*
+    Recebe um arquivo de indice já aberto e puxa para memória primária seu conteúdp 
+
+    params:
+        FILE* index_file => Arquivo de indice já aberto
+
+    return:
+        INDEX_ARR* idx_array => endereço do array de indice
+*/
 
 INDEX_ARR* save_index_in_mem(FILE* index_file);
 

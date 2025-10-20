@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -197,30 +197,39 @@ void order_index(INDEX_ARR* index_arr)
     
 }
 
+/*
+    Recebe um arquivo de indice já aberto e puxa para memória primária seu conteúdp 
+
+    params:
+        FILE* index_file => Arquivo de indice já aberto
+
+    return:
+        INDEX_ARR* idx_array => endereço do array de indice
+*/
 
 INDEX_ARR* save_index_in_mem(FILE* index_file)
 {
+    //Termina o programa caso seja passaddo um arquivo de indice não aberto
     if(index_file == NULL)
     {
         print_error();
         exit(EXIT_FAILURE);
     }
 
+    //Pega o tamanho do arquivo de indice em bytes
     fseek(index_file, 0, SEEK_END);
     long index_end = ftell(index_file);
     fseek(index_file, IDX_HEAD_REG_LEN, SEEK_SET);
 
+    // Calculo quantos registro, sem cabeçalho, o arquivo de indice tem
     int len = (index_end - 11)/12;
 
-    INDEX_ARR* idx_array = create_index_arr(len);
+    INDEX_ARR* idx_array = create_index_arr(len); //Cria um array de indice com o tamanho apropriado
 
-    int i = 0;
-    while (i < len)
+    for(int i = 0; i < len; i++)
     {
         fread(&(idx_array->idx_arr[i].idPessoa), 4, 1, index_file);
         fread(&(idx_array->idx_arr[i].byteOffset), 8, 1, index_file);
-
-        i = i + 1;
     }
     
     return idx_array;

@@ -1,7 +1,7 @@
 /*
 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
 
-Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
                                 */
                                
@@ -19,9 +19,9 @@ Pedro Avelar Machado                XXXXXXXX
     return:
         void
 */
-void end_string_on_mark(char* str, const char mark)
+void end_string_on_mark(char* str, const char* mark)
 {
-    int rm = strcspn(str,&mark);    // Encontra a posição da primeira ocorrência do marcador e a guarda em 'rm'
+    int rm = strcspn(str, mark);    // Encontra a posição da primeira ocorrência do marcador e a guarda em 'rm'
     str[rm] = '\0';                     // Substitui o caracter por '\0'
 }
 
@@ -64,7 +64,7 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
             strcpy(args[mpos],aux);                     // Copia a string
             // printf("args[%i] ==> %s",mpos,args[mpos]);
 
-            end_string_on_mark(args[mpos],'\n');        // Substitui '\n' por '\0'
+            end_string_on_mark(args[mpos],"\n");        // Substitui '\n' por '\0'
 
             memset(aux,0,strlen(aux));                  // Reseta aux para '\0'
             

@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -52,7 +52,7 @@ void destroy_strip_matrix(char** strip_m);
     return:
         void
 */
-void end_string_on_mark(char* str, const char mark);
+void end_string_on_mark(char* str, const char *mark);
 
 /*
     Exibe o menu com as funcionalidades e seus respectiovs argumentos.
