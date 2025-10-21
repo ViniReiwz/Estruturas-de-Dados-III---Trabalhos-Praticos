@@ -48,17 +48,6 @@ INDEX_DREG* create_index_dreg();
 INDEX_ARR* create_index_arr(int len);
 
 /*
-    Libera a memória de um registro de dados do arquivo de índice na memória primária
-
-    params:
-        INDEX_DREG* idxdreg => Ponteiro para o registro de dados a ser liberado da memória
-    
-    return:
-        void
-*/
-// void destroy_index_dreg(INDEX_DREG* idxdreg);
-
-/*
     Libera a memória de um vetor de registros de dados do arquivo de índice na memoria primária
 
     params:
@@ -125,5 +114,31 @@ void order_index(INDEX_ARR* index_arr);
 
 INDEX_ARR* save_index_in_mem(FILE* index_file);
 
+/*
+    Recebe um array de indice e um ID, retornando a posição no array daquele ID. 
+
+    params:
+        INDEX_ARR* idx_array => array de índices
+        int id => id a ser procurado
+
+    return:
+        int middle => posição do ID procurado
+*/
+
+int index_binary_search(INDEX_ARR* idx_array, int id);
+
+/*
+    Recebe um array de indice e um ID, removendo o registro com esse ID do array
+
+    params:
+        INDEX_ARR* idx_array => array de índices
+        int id => id a ser procurado
+
+    return:
+        void
+*/
+
+
+void remove_id_array(INDEX_ARR* idx_array, int id);
 
 #endif

@@ -350,39 +350,16 @@ long WHERE(FILE *data_file, FILE *index_file, const char* index_filename, char *
         INDEX_ARR *idx_array = save_index_in_mem(index_file); // puxa o indice para memória primária
         int len = idx_array->len;
 
-        int left = 0;
-        int right = len - 1;
-        int middle;
+        int pos = index_binary_search(idx_array, id);
 
-        // BUSCA BINÀRIA
-
-        while (1)
-        {
-            middle = left + (right - left) / 2; // calcula o meio
-
-            if (left == right || idx_array->idx_arr[middle].idPessoa == id) // caso as extremidades sejam iguais sai do while
-            {                                                               // ou caso o conteudo do meio seja igual ao id
-                break;
-            }
-            // O meio mais ou menos um vira a nova esquerda ou direita, respectivamente
-            else if (idx_array->idx_arr[middle].idPessoa > id)
-            {
-                right = middle - 1;
-            }
-            else
-            {
-                left = middle + 1;
-            }
-        }
-
-        // Caso o meio não seja o id no fim do processo retorna -1
-        if (idx_array->idx_arr[middle].idPessoa != id)
+        // Pos == -1 => não há ID igual ao ID desejado
+        if (pos == -1)
         {
             return final_byte;
         }
         else // Caso o contrario retorna o byteoffset desejado
         {
-            return idx_array->idx_arr[middle].byteOffset;
+            return idx_array->idx_arr[pos].byteOffset;
         }
 
         destroy_index_arr(idx_array); // Desaloca memória
@@ -399,7 +376,8 @@ long WHERE(FILE *data_file, FILE *index_file, const char* index_filename, char *
 /*
     Recebe o número de pesquisas a serem feitas e o nome do arquivo de dados,
     abre-o para leitura, caso exista, e recebe o tipo do campo e o valor do campo
-    para usar na pesquisa, caso seja feita a pesquisa por ID, usa o arquivo de indice
+    para usar na pesquisa, caso seja feita a pesquisa por ID, usa o arquivo de indice.
+    Printa os registros encontrados em cada pesquisa.
 
     params:
         const char* data_filename => nome do arquivo de dados a ser aberto
@@ -478,4 +456,113 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
     {
         fclose(index_file);
     }
+}
+
+/*
+    Recebe o número de pesquisas a serem feitas e o nome do arquivo de dados,
+    abre-o para leitura, caso exista, e recebe o tipo do campo e o valor do campo
+    para usar na pesquisa, caso seja feita a pesquisa por ID, usa o arquivo de indice.
+    Marca os registros encontrado em cada pesquisa como lógicamente removidos.
+
+    params:
+        const char* data_filename => nome do arquivo de dados a ser aberto
+        const char* index_filename => nome do arquivo de index caso seja nescessário
+        int search number => número de pesquisas a serem feitas
+
+    return:
+        void
+
+*/
+
+void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_number)
+{
+    char *data_path = get_file_path(data_filename); // Pega o caminho do arquivo de dados e
+    FILE *data_file = fopen(data_path, "r+b");       // abre-o para leitura e escrita
+    free(data_path);
+
+    if (data_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
+    {
+        print_error();
+        return;
+    }
+
+    update_file_status(data_file, '0'); // atualiza o status para inconsistente
+
+    char *index_path = get_file_path(index_filename);
+    FILE *index_file = fopen(index_path, "r+b");
+    free(index_path);
+    
+    if (index_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
+    {
+        print_error();
+        return;
+    }
+
+    update_file_status(index_file, '0'); // atualiza o status para inconsistente
+
+    INDEX_ARR* idx_array = save_index_in_mem(index_file);
+    const char removed = '1';
+
+    for (int i = 1; i <= search_number; i++)
+    {
+        char str_in[50];          // Interage com usuário, pegando uma string do tipo
+        fgets(str_in, 50, stdin); //"n tipoCampo=Valor"
+
+        char **type_and_value = strip_by_delim(str_in, '=');         // separa o tipo e valor
+        char **number_type = strip_by_delim(type_and_value[1], ' '); // separa o tipo do número
+
+        type_and_value[2] = remove_quotes(type_and_value[2]); // remove as aspas do valor
+
+        end_string_on_mark(type_and_value[2], "\n"); // retira o '\n' e o '\r' das strings
+        end_string_on_mark(type_and_value[2], "\r"); // lidas
+
+        long final_byte;                     // Coloca o cursor de arquivos de dados no byte offset
+        fseek(data_file, 9, SEEK_SET);       // do cabeçalho contendo próximo byte offset livre
+        fread(&final_byte, 8, 1, data_file); // Pega o próximo byte offset livre (fim do arquivo)
+
+        long current_byte = DF_HEAD_REG_LEN;         // coloca byte atual logo após o cabeçalho
+        fseek(data_file, DF_HEAD_REG_LEN, SEEK_SET); // coloca o cursor logo após o cabeçalho
+
+        while(1)
+        {
+            // Procura o primeiro byte offset desejado depois do byte_atual
+            current_byte = WHERE(data_file, index_file, index_filename,
+                           number_type[2], type_and_value[2], current_byte, final_byte);
+            
+            if(current_byte >= final_byte) //Caso o byte atual chegue no final para a busca
+            {
+                break;
+            }
+
+            fseek(data_file, current_byte, SEEK_SET);
+            fwrite(&removed, 1, 1, data_file); // Marca como logicamente removido o registro encontrado
+            
+            int size;
+            fread(&size, 4, 1, data_file);  // Pega o campo "Tamanho_registro"
+
+            current_byte = current_byte + size + 5; // Próxima pesquisa começa a partir do 
+                                                    // próximo campo
+
+            int id;
+            fread(&id, 4, 1, data_file);    // Pega o campo "id"
+
+            remove_id_array(idx_array, id); // Retira o ID achado do indice
+        }
+
+        // Desaloca memória
+        destroy_strip_matrix(type_and_value);
+        destroy_strip_matrix(number_type);
+    }
+
+    write_on_index_file(index_file, idx_array); // Reescreve o arquivo de indice;
+
+    destroy_index_arr(idx_array);
+
+    update_file_status(data_file, '1'); //atualiza o status do arquivo para consistente
+    update_file_status(index_file, '1'); //atualiza o status do arquivo para consistente
+    fclose(data_file);
+    fclose(index_file);
+
+    binarioNaTela(data_filename);
+    binarioNaTela(index_filename);
 }

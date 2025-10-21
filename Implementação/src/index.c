@@ -42,20 +42,6 @@ INDEX_ARR* create_index_arr(int len)
 }
 
 /*
-    Libera a memória de um registro de dados do arquivo de índice na memória primária
-
-    params:
-        INDEX_DREG* idxdreg => Ponteiro para o registro de dados a ser liberado da memória
-    
-    return:
-        void
-*/
-// void destroy_index_dreg(INDEX_DREG* idxdreg)
-// {
-//     free(idxdreg);
-// }
-
-/*
     Libera a memória de um vetor de registros de dados do arquivo de índice na memoria primária
 
     params:
@@ -64,15 +50,10 @@ INDEX_ARR* create_index_arr(int len)
     return:
         void
 */
+
 void destroy_index_arr(INDEX_ARR* idxarr)
 {
-    // int len = idxarr->len;                          // Grava o tamanho do vetor
-    // for(int i = 0; i < len ; i ++)                  // Percorre todo o cetor
-    // {
-    //     destroy_index_dreg(&idxarr->idx_arr[i]);    // Destroi cada registro de dados presente no vetor
-    // }
-
-    free(idxarr->idx_arr);                          // Libera a memória do ponteiro propriamente dito
+    free(idxarr->idx_arr);                          // Libera a memória do array de registros
     free(idxarr);                                   // Libera a memória da estrutura
 }
 
@@ -152,6 +133,11 @@ INDEX_DREG indexate(int id, long int boffset)
 */
 void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
 {   
+    if(index_file == NULL) //testa se de fato o arquivo de indice já esta aberto
+    {
+        exit(EXIT_FAILURE);
+    }
+    
     fseek(index_file,IDX_HEAD_REG_LEN,SEEK_SET);                // Posiciona o ponteiro do arquivo depois do registro de cabeçalho
 
     for(int i = 0; i < idxarr->len; i++)                        // Varre todos os registros de índice, escrevendo um à um no arquivo
@@ -160,6 +146,9 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
         fwrite(&idxarr->idx_arr[i].byteOffset,8,1,index_file);
     }
 
+    int file_descriptor = fileno(index_file);
+    __off_t num = 12 + 12*idxarr->len;   
+    ftruncate(file_descriptor, num);    // Termina o arquivo exatamente após o último registro de indice
     
     if(DEBUG){printf("\nOFFSET FINAL DE INDÍCE pelo ftell --> %li\n",ftell(index_file));}    // Exibe o offset em que o ponteiro de file parou
 }
@@ -233,4 +222,81 @@ INDEX_ARR* save_index_in_mem(FILE* index_file)
     }
     
     return idx_array;
+}
+
+/*
+    Recebe um array de indice e um ID, retornando a posição no array daquele ID. 
+
+    params:
+        INDEX_ARR* idx_array => array de índices
+        int id => id a ser procurado
+
+    return:
+        int middle => posição do ID procurado
+*/
+
+int index_binary_search(INDEX_ARR* idx_array, int id)
+{
+    int len = idx_array->len;
+
+    int left = 0;
+    int right = len - 1;
+    int middle;
+
+    // BUSCA BINÀRIA
+
+    while (1)
+    {
+        middle = left + (right - left) / 2; // calcula o meio
+
+        if (left == right || idx_array->idx_arr[middle].idPessoa == id) // caso as extremidades sejam iguais sai do while
+        {                                                               // ou caso o conteudo do meio seja igual ao id
+            break;
+        }
+        // O meio mais ou menos um vira a nova esquerda ou direita, respectivamente
+        else if (idx_array->idx_arr[middle].idPessoa > id)
+        {
+            right = middle - 1;
+        }
+        else
+        {
+            left = middle + 1;
+        }
+    }
+
+    // Caso o meio não seja o id no fim do processo retorna -1
+    if (idx_array->idx_arr[middle].idPessoa != id)
+    {
+        return -1;
+    }
+    else // Caso o contrario retorna o byteoffset desejado
+    {
+        return middle;
+    }
+}
+
+/*
+    Recebe um array de indice e um ID, removendo o registro com esse ID do array
+
+    params:
+        INDEX_ARR* idx_array => array de índices
+        int id => id a ser procurado
+
+    return:
+        void
+*/
+
+
+void remove_id_array(INDEX_ARR* idx_array, int id)
+{
+    int pos = index_binary_search(idx_array, id);   // acha a posição desse ID no array
+    int len = idx_array->len;
+
+    for(int i = pos; i < len - 1; i++)  //Traz todos os registros a partir do ID uma posição
+    {                                   //para frente apagando o registro do ID
+        idx_array->idx_arr[i].byteOffset = idx_array->idx_arr[i + 1].byteOffset;
+        idx_array->idx_arr[i].idPessoa = idx_array->idx_arr[i + 1].idPessoa;
+    }
+
+    idx_array->len--;
 }

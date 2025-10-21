@@ -1,7 +1,7 @@
 /*
                                 TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
                                 
-                                Pedro Avelar Machado                XXXXXXXX
+                                Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
 */
 
@@ -89,6 +89,23 @@ int main()
             else
             {
                 SELECT_FROM_WHERE(args[2],args[3],atoi(args[4]));
+            }
+            
+            break;
+        }
+    
+    case 5:
+        {
+            if(atoi(args[0]) < 4)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                DELETE_FROM_WHERE(args[2],args[3],atoi(args[4]));
             }
             
             break;
