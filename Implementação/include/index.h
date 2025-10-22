@@ -141,4 +141,19 @@ int index_binary_search(INDEX_ARR* idx_array, int id);
 
 void remove_id_array(INDEX_ARR* idx_array, int id);
 
+/*
+    Recebe um array de indice, um ID e um byte_offset, adicionando no final
+    o registro com esse ID e byte_offset no array
+
+    params:
+        INDEX_ARR* idx_array => array de índices
+        int id => id do registro a ser adicionado
+        long byte_offset => byte_offset do registro a ser adicionado
+
+    return:
+        void
+*/
+
+void add_id_array(INDEX_ARR** idx_array, int id, long byte_offset);
+
 #endif

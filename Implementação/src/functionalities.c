@@ -113,37 +113,16 @@ int SELECT(FILE *const data_file, long const byte_offset, int *NO_REGISTER)
         exit(EXIT_FAILURE);
     }
 
-    fseek(data_file, byte_offset, SEEK_SET); // posiciona o cursor do arquivo no primeiro byte do registro
-
-    DATA_DREG *data_register = create_data_dreg(); // cria uma variável de registro
-
-    fread(&(data_register->removido), 1, 1, data_file); // Começa a ler os parâmetros
-    fread(&(data_register->tamReg), 4, 1, data_file);
+    DATA_DREG *data_register = pull_reg_to_memory(byte_offset, data_file);  // Puxa o registro para memória
 
     int size_selected = data_register->tamReg + 5; // Quantidade de bytes lidos
     if (data_register->removido == '1')            // Caso o arquivo seja removido, sai da função
     {
+        destroy_data_dreg(data_register);
         return size_selected;
     }
 
     *NO_REGISTER = 0;
-
-    fread(&(data_register->idPessoa), 4, 1, data_file);
-    fread(&(data_register->idadePessoa), 4, 1, data_file);
-
-    fread(&(data_register->tamNomePessoa), 4, 1, data_file);
-    if (data_register->tamNomePessoa > 0) // Caso a pessoa tenha nome ele será lido
-    {
-        data_register->nomePessoa = (char *)calloc(1, data_register->tamNomePessoa);
-        fread(data_register->nomePessoa, data_register->tamNomePessoa, 1, data_file);
-    }
-
-    fread(&(data_register->tamNomeUsuario), 4, 1, data_file);
-    if (data_register->tamNomeUsuario > 0) // Caso o usuário tenha nome ele será lido
-    {
-        data_register->nomeUsuario = (char *)calloc(1, data_register->tamNomeUsuario);
-        fread(data_register->nomeUsuario, data_register->tamNomeUsuario, 1, data_file);
-    }
 
     print_data_register(*data_register); // printa o registro
     destroy_data_dreg(data_register);    // Destroi e apaga o registro da memória primária
@@ -411,7 +390,7 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
         char **type_and_value = strip_by_delim(str_in, '=');         // separa o tipo e valor
         char **number_type = strip_by_delim(type_and_value[1], ' '); // separa o tipo do número
 
-        type_and_value[2] = remove_quotes(type_and_value[2]); // remove as aspas do valor
+        remove_quotes(type_and_value[2]); // remove as aspas do valor
 
         end_string_on_mark(type_and_value[2], "\n"); // retira o '\n' e o '\r' das strings
         end_string_on_mark(type_and_value[2], "\r"); // lidas
@@ -460,21 +439,22 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
 
 /*
     Recebe o número de pesquisas a serem feitas e o nome do arquivo de dados,
-    abre-o para leitura, caso exista, e recebe o tipo do campo e o valor do campo
+    abre-o para leitura e escrita, caso exista, e recebe do usuário 
+    tipo do campo e o valor do campo
     para usar na pesquisa, caso seja feita a pesquisa por ID, usa o arquivo de indice.
     Marca os registros encontrado em cada pesquisa como lógicamente removidos.
 
     params:
         const char* data_filename => nome do arquivo de dados a ser aberto
-        const char* index_filename => nome do arquivo de index caso seja nescessário
-        int search number => número de pesquisas a serem feitas
+        const char* index_filename => nome do arquivo de index
+        int delete number => número de deleções a serem feitas
 
     return:
         void
 
 */
 
-void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_number)
+void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_number)
 {
     char *data_path = get_file_path(data_filename); // Pega o caminho do arquivo de dados e
     FILE *data_file = fopen(data_path, "r+b");       // abre-o para leitura e escrita
@@ -489,7 +469,7 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_nu
     update_file_status(data_file, '0'); // atualiza o status para inconsistente
 
     char *index_path = get_file_path(index_filename);
-    FILE *index_file = fopen(index_path, "r+b");
+    FILE *index_file = fopen(index_path, "r+b");    // abre-o para leitura e escrita
     free(index_path);
     
     if (index_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
@@ -500,10 +480,16 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_nu
 
     update_file_status(index_file, '0'); // atualiza o status para inconsistente
 
+    int num_people;
+    int num_removed;
+
+    fread(&num_people, 4, 1, data_file);    // Le do cabeçalho o número de pessoas e o número
+    fread(&num_removed, 4, 1, data_file);   // de registros removidos
+
     INDEX_ARR* idx_array = save_index_in_mem(index_file);
     const char removed = '1';
 
-    for (int i = 1; i <= search_number; i++)
+    for (int i = 1; i <= delete_number; i++)
     {
         char str_in[50];          // Interage com usuário, pegando uma string do tipo
         fgets(str_in, 50, stdin); //"n tipoCampo=Valor"
@@ -511,7 +497,7 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_nu
         char **type_and_value = strip_by_delim(str_in, '=');         // separa o tipo e valor
         char **number_type = strip_by_delim(type_and_value[1], ' '); // separa o tipo do número
 
-        type_and_value[2] = remove_quotes(type_and_value[2]); // remove as aspas do valor
+        remove_quotes(type_and_value[2]); // remove as aspas do valor
 
         end_string_on_mark(type_and_value[2], "\n"); // retira o '\n' e o '\r' das strings
         end_string_on_mark(type_and_value[2], "\r"); // lidas
@@ -539,7 +525,7 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_nu
             
             int size;
             fread(&size, 4, 1, data_file);  // Pega o campo "Tamanho_registro"
-
+            
             current_byte = current_byte + size + 5; // Próxima pesquisa começa a partir do 
                                                     // próximo campo
 
@@ -547,6 +533,9 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_nu
             fread(&id, 4, 1, data_file);    // Pega o campo "id"
 
             remove_id_array(idx_array, id); // Retira o ID achado do indice
+
+            num_people--;   //Diminui o número de pesssoas e aumenta o número de removidos
+            num_removed++;
         }
 
         // Desaloca memória
@@ -559,7 +548,144 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int search_nu
     destroy_index_arr(idx_array);
 
     update_file_status(data_file, '1'); //atualiza o status do arquivo para consistente
+    fwrite(&num_people, 4, 1, data_file);   //atualiza o cabeçalho
+    fwrite(&num_removed, 4, 1, data_file);
+
     update_file_status(index_file, '1'); //atualiza o status do arquivo para consistente
+
+    fclose(data_file);
+    fclose(index_file);
+
+    binarioNaTela(data_filename);
+    binarioNaTela(index_filename);
+}
+
+/*
+    Recebe o número de pesquisas a serem feitas e o nome do arquivo de dados,
+    abre-o para leitura e escrita, caso exista. O usuário informa os valores
+    dos campos do registro a ser inserido, e a função insere-o no final
+
+    params:
+        const char* data_filename => nome do arquivo de dados a ser aberto
+        const char* index_filename => nome do arquivo de index caso seja nescessário
+        int insert_number => número de inserções a serem feitas
+
+    return:
+        void
+
+*/
+
+void INSERT_INTO(char* data_filename, char *index_filename, int insert_number)
+{
+    char *data_path = get_file_path(data_filename); // Pega o caminho do arquivo de dados e
+    FILE *data_file = fopen(data_path, "r+b");       // abre-o para leitura e escrita
+    free(data_path);
+
+    if (data_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
+    {
+        print_error();
+        return;
+    }
+
+    update_file_status(data_file, '0'); // atualiza o status para inconsistente
+
+    char *index_path = get_file_path(index_filename);
+    FILE *index_file = fopen(index_path, "r+b");    // abre-o para leitura e escrita
+    free(index_path);
+    
+    if (index_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
+    {
+        print_error();
+        return;
+    }
+
+    update_file_status(index_file, '0'); // atualiza o status para inconsistente
+
+    int num_people;
+
+    fread(&num_people, 4, 1, data_file);    // Le do cabeçalho o número de pessoas
+
+    INDEX_ARR* idx_array = save_index_in_mem(index_file);  
+
+    fseek(data_file, 9, SEEK_SET);  // Posição do final byte no cabeçalho
+    long final_byte;
+    fread(&final_byte, 8, 1, data_file);
+
+    for(int i = 0; i < insert_number; i++)
+    {
+        char str_in[100];
+        fgets(str_in, 100, stdin);
+
+        char** values = strip_by_delim(str_in, ',');
+        for(int j = 1; j < 5; j++)
+        {
+            remove_everychar_until_space(values[j]);    //Retira o espaço de cada campo  e o número da pesquisa do primeiro campo
+            remove_quotes(values[j]);
+            end_string_on_mark(values[j], "\n");
+            end_string_on_mark(values[j], "\r");
+        }
+
+        //CRIA O REGISTRO DE PESSOA COM AS INFORMAÇÕES DISPOSTAS
+
+        DATA_DREG* new_data_reg = create_data_dreg();  
+        
+        //idPessoa
+        new_data_reg->idPessoa = atoi(values[1]); 
+        
+        //nomePessoa
+        if(strcmp(values[2], "NULO") != 0)  
+        {
+            new_data_reg->tamNomePessoa = strlen(values[2]);
+            new_data_reg->nomePessoa = (char*)calloc(strlen(values[2]), 1);
+            strcpy(new_data_reg->nomePessoa, values[2]);
+        }
+        else
+        {
+            new_data_reg->tamNomePessoa = 0;
+        }
+        
+        //idadePessoa
+        if(strcmp(values[3], "NULO") != 0)
+        {
+            new_data_reg->idadePessoa = atoi(values[3]);
+        }
+        else
+        {
+            new_data_reg->idadePessoa = -1;
+        }
+
+        //nomeUsuário
+        new_data_reg->tamNomeUsuario = strlen(values[4]);
+        new_data_reg->nomeUsuario = (char*)calloc(strlen(values[4]), 1);
+        strcpy(new_data_reg->nomeUsuario, values[4]);
+
+        //Tamanho e status
+        new_data_reg->removido = '0';
+        new_data_reg->tamReg = 16 + new_data_reg->tamNomePessoa + new_data_reg->tamNomeUsuario;
+
+        //TERMINO DA CRIAÇÂO
+
+        push_reg_to_memory(final_byte, data_file, new_data_reg);    //Salva o registro no fim do arquivo
+        add_id_array(&idx_array, new_data_reg->idPessoa, final_byte);
+        final_byte = final_byte + 5 + new_data_reg->tamReg;
+        
+        num_people++;
+
+        destroy_strip_matrix(values);
+        destroy_data_dreg(new_data_reg);
+    }
+
+    order_index(idx_array);
+    write_on_index_file(index_file, idx_array);
+    destroy_index_arr(idx_array);
+
+    update_file_status(data_file, '1'); //atualiza o status do arquivo para consistente
+    fwrite(&num_people, 4, 1, data_file);   //atualiza o cabeçalho
+    fseek(data_file, 9, SEEK_SET);  // Pula para a parte do cabeçalho do final_byte
+    fwrite(&final_byte, 8, 1, data_file);
+
+    update_file_status(index_file, '1'); //atualiza o status do arquivo para consistente
+
     fclose(data_file);
     fclose(index_file);
 

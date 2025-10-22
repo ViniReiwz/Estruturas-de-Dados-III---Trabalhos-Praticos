@@ -454,3 +454,89 @@ void print_data_register(DATA_DREG data_register)
     }    
 }
 
+/*
+    Recebe um arquivo já aberto e puxa para a memória primária o conteúdo de um registro,
+
+    params:
+        const FILE* data_file => Arquivo fonte dos dados (já existente)
+        const long byte_offset => Byte offset do registro
+
+    return:
+        DATA_DREG* data_register => registro puxado da memória
+
+*/
+
+DATA_DREG* pull_reg_to_memory(long byte_offset, FILE* data_file)
+{
+   if (data_file == NULL) // testa se o arquivo existe
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(data_file, byte_offset, SEEK_SET); // posiciona o cursor do arquivo no primeiro byte do registro
+
+    DATA_DREG *data_register = create_data_dreg(); // cria uma variável de registro
+
+    fread(&(data_register->removido), 1, 1, data_file); // Começa a ler os parâmetros
+    fread(&(data_register->tamReg), 4, 1, data_file);
+    fread(&(data_register->idPessoa), 4, 1, data_file);
+    fread(&(data_register->idadePessoa), 4, 1, data_file);
+
+    fread(&(data_register->tamNomePessoa), 4, 1, data_file);
+    if (data_register->tamNomePessoa > 0) // Caso a pessoa tenha nome ele será lido
+    {
+        data_register->nomePessoa = (char *)calloc(1, data_register->tamNomePessoa);
+        fread(data_register->nomePessoa, data_register->tamNomePessoa, 1, data_file);
+    }
+
+    fread(&(data_register->tamNomeUsuario), 4, 1, data_file);
+    if (data_register->tamNomeUsuario > 0) // Caso o usuário tenha nome ele será lido
+    {
+        data_register->nomeUsuario = (char *)calloc(1, data_register->tamNomeUsuario);
+        fread(data_register->nomeUsuario, data_register->tamNomeUsuario, 1, data_file);
+    }
+ 
+    return data_register;
+}
+
+/*
+    Recebe um arquivo já aberto e escreve da memória primária um registro no arquivo.
+
+    params:
+        const FILE* data_file => Arquivo fonte dos dados (já existente)
+        const long byte_offset => byte offset onde deve ser escrito o registro
+        DATA_DREG* data_register => registro a ser escrito
+
+    return:
+        void
+
+*/
+
+void push_reg_to_memory(long byte_offset, FILE* data_file, DATA_DREG *data_register)
+{
+   if (data_file == NULL || data_register == NULL) // testa se o arquivo e o registro existem
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(data_file, byte_offset, SEEK_SET); // posiciona o cursor do arquivo no primeiro byte do registro
+
+    fwrite(&(data_register->removido), 1, 1, data_file); // Começa a ler os parâmetros
+    fwrite(&(data_register->tamReg), 4, 1, data_file);
+    fwrite(&(data_register->idPessoa), 4, 1, data_file);
+    fwrite(&(data_register->idadePessoa), 4, 1, data_file);
+
+    fwrite(&(data_register->tamNomePessoa), 4, 1, data_file);
+    if (data_register->tamNomePessoa > 0) // Caso a pessoa tenha nome ele será lido
+    {
+        fwrite(data_register->nomePessoa, data_register->tamNomePessoa, 1, data_file);
+    }
+
+    fwrite(&(data_register->tamNomeUsuario), 4, 1, data_file);
+    if (data_register->tamNomeUsuario > 0) // Caso o usuário tenha nome ele será lido
+    {
+        fwrite(data_register->nomeUsuario, data_register->tamNomeUsuario, 1, data_file);
+    }
+}

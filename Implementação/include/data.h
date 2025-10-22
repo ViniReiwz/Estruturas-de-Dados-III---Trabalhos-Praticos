@@ -47,6 +47,7 @@ typedef struct _data_dlist  // Lista de dados do arquivo de dados
         
 }DATA_LIST;
 
+
 /*
     Cria um arquivo de dados e seu registro de cabeçalho
 
@@ -175,5 +176,34 @@ INDEX_ARR* fill_data_file(FILE* src_file, FILE* dest_file);
 */
 
 void print_data_register(DATA_DREG data_register);
+
+/*
+    Recebe um arquivo já aberto e puxa para a memória primária o conteúdo de um registro,
+
+    params:
+        const FILE* data_file => Arquivo fonte dos dados (já existente)
+        const long byte_offset => Byte offset do registro
+
+    return:
+        DATA_DREG* data_register => registro puxado da memória
+
+*/
+
+DATA_DREG* pull_reg_to_memory(long byte_offset, FILE* data_file);
+
+/*
+    Recebe um arquivo já aberto e escreve da memória primária um registro no arquivo.
+
+    params:
+        const FILE* data_file => Arquivo fonte dos dados (já existente)
+        const long byte_offset => byte offset onde deve ser escrito o registro
+        DATA_DREG* data_register => registro a ser escrito
+
+    return:
+        void
+
+*/
+
+void push_reg_to_memory(long byte_offset, FILE* data_file, DATA_DREG *data_register);
 
 #endif

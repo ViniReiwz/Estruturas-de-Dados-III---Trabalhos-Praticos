@@ -300,3 +300,35 @@ void remove_id_array(INDEX_ARR* idx_array, int id)
 
     idx_array->len--;
 }
+
+/*
+    Recebe um array de indice, um ID e um byte_offset, adicionando no final
+    o registro com esse ID e byte_offset no array
+
+    params:
+        INDEX_ARR* idx_array => array de índices
+        int id => id do registro a ser adicionado
+        long byte_offset => byte_offset do registro a ser adicionado
+
+    return:
+        void
+*/
+
+void add_id_array(INDEX_ARR** idx_array, int id, long byte_offset)
+{
+    int len = (*idx_array)->len;
+    INDEX_ARR* new_index_array = create_index_arr(len + 1); //cria um index com um elemento a mais
+
+    for(int i = 0; i < len; i++)  //copia item a item de um array para o outro
+    {
+        new_index_array->idx_arr[i].byteOffset = (*idx_array)->idx_arr[i].byteOffset;
+        new_index_array->idx_arr[i].idPessoa = (*idx_array)->idx_arr[i].idPessoa ;
+    }
+
+    //adiciona o novo elemento no final
+    new_index_array->idx_arr[len].byteOffset = byte_offset;
+    new_index_array->idx_arr[len].idPessoa = id;
+
+    destroy_index_arr(*idx_array);  //desaloca o antigo array de index
+    *idx_array = new_index_array;   //passa por parametros o novo array para o ponteiro do antigo
+}

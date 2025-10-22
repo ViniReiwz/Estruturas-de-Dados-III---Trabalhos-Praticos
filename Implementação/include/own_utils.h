@@ -119,10 +119,23 @@ void update_file_status(FILE* file, char status);
         char* str => string com aspas a serem retiradas
     
     return:
-        char* str_wo_comma => string sem aspas
+        void
 */
 
-char* remove_quotes(char* str);
+void remove_quotes(char* str);
+
+/*
+    Remove todos os caracteres da string até achar o primeiro espaço, remove o espaço também.
+
+    params:
+        char* str => string de entrada
+    
+    return:
+        void
+*/
+
+
+void remove_everychar_until_space(char *str);
 
 
 #endif

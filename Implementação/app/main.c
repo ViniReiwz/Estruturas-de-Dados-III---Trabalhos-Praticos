@@ -110,6 +110,22 @@ int main()
             
             break;
         }
+    case 6:
+        {
+            if(atoi(args[0]) < 4)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                INSERT_INTO(args[2],args[3],atoi(args[4]));
+            }
+            
+            break;
+        }
         
     default:
         {
