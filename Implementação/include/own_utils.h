@@ -14,7 +14,7 @@
 #define MAX_ARGS 10         // Número máximo de argumentos para cada opção
 #define ARG_LEN 50          // Tamanho médio de cada argumento
 #define FILE_DIR "./"       // Pasta em que todos os arquivos devem ser procurados ou salvos
-#define DEBUG 0             // Variável de deubg, habilita os prints nas funções
+#define DEBUG 1             // Variável de deubg, habilita os prints nas funções
 #define ERROR_MSG "Falha no processamento do arquivo." // Variável de mensagem de erro padrão
 
 #include "all.h"
@@ -145,6 +145,17 @@ void remove_quotes(char* str);
         void
 */
 void remove_everychar_until_space(char *str);
+
+/*
+    Inverte a string de data do formato dd/mm/aaaa para aaaa/mm/dd
+
+    params:
+        char* date => String a ser invertida;
+    
+    return:
+        char* reversed_date => String já invertida.
+*/
+char* reverse_date_string(char* date);
 
 
 #endif
