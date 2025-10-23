@@ -346,22 +346,22 @@ void add_id_array(INDEX_ARR** idx_array, int id, long byte_offset)
         void
 */
 
-void open_and_pull_index(FILE* index_file, INDEX_ARR* idx_array, char* index_filename)
+void open_and_pull_index(FILE** index_file, INDEX_ARR** idx_array, char* index_filename)
 {
-    if(index_file == NULL)
+    if(*index_file == NULL)
     {
         char *index_path = get_file_path(index_filename);
-        index_file = fopen(index_path, "r+b");    // abre-o para leitura e escrita
+        *index_file = fopen(index_path, "r+b");    // abre-o para leitura e escrita
         free(index_path);
     
-        if (index_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
+        if (*index_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
         {
             print_error();
             return;
         }
 
-        update_file_status(index_file, '0'); // atualiza o status para inconsistente
+        update_file_status(*index_file, '0'); // atualiza o status para inconsistente
 
-        idx_array = save_index_in_mem(index_file);
+        *idx_array = save_index_in_mem(*index_file);
     }
 }

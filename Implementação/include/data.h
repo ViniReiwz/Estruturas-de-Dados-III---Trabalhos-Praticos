@@ -189,7 +189,7 @@ void print_data_register(DATA_DREG data_register);
 
 */
 
-DATA_DREG* pull_reg_to_memory(long byte_offset, FILE* data_file);
+DATA_DREG* pull_reg_from_memory(long byte_offset, FILE* data_file);
 
 /*
     Recebe um arquivo já aberto e escreve da memória primária um registro no arquivo.

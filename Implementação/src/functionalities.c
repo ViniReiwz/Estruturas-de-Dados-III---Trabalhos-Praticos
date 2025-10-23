@@ -113,7 +113,7 @@ int SELECT(FILE *const data_file, long const byte_offset, int *NO_REGISTER)
         exit(EXIT_FAILURE);
     }
 
-    DATA_DREG *data_register = pull_reg_to_memory(byte_offset, data_file);  // Puxa o registro para memória
+    DATA_DREG *data_register = pull_reg_from_memory(byte_offset, data_file);  // Puxa o registro para memória
 
     int size_selected = data_register->tamReg + 5; // Quantidade de bytes lidos
     if (data_register->removido == '1')            // Caso o arquivo seja removido, sai da função
@@ -724,6 +724,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
 
     FILE* index_file = NULL;
 
+    fseek(data_file, 5, SEEK_SET);
     int num_removed;                        // Le do cabeçalho o número de pessoas
     fread(&num_removed, 4, 1, data_file);
 
@@ -742,13 +743,13 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
         
         char** second_strip = strip_by_delim(first_strip[2], ' '); //Separa a string por ' '
 
-        char* search[1];
+        char* search[2];
         search[0] = first_strip[1];
         remove_everychar_until_space(search[0]);    //Campo a ser buscado sem o número da busca
         search[1] = second_strip[1];
         remove_quotes(search[1]);   //Valor do campo sem aspas
 
-        char* update[1];
+        char* update[2];
         update[0] = second_strip[2];    //Campo a ser alterado
         update[1] = first_strip[3];
         remove_quotes(update[1]);
@@ -771,15 +772,14 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                 break;
             }
 
-            DATA_DREG* reg = create_data_dreg();
-            push_reg_to_memory(current_byte, data_file, reg);   //Pega um registro que satisfez a busca
+            DATA_DREG* reg = pull_reg_from_memory(current_byte, data_file);   //Pega um registro que satisfez a busca
 
             int next_byte = reg->tamReg + 5 + current_byte;
 
             if(strcmp(update[0], "idPessoa") == 0)
             {   
                 //Abre o arquivo de indice e puxa o indeice para memória primária
-                open_and_pull_index(index_file, idx_array, index_filename);
+                open_and_pull_index(&index_file, &idx_array, index_filename);
 
                 //tira o ID do array
                 remove_id_array(idx_array, reg->idPessoa);
@@ -807,20 +807,23 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     fseek(data_file, current_byte, SEEK_SET);   //Remove
                     char removed = '1';
                     fwrite(&removed, 1, 1, data_file);
+                    num_removed++;
                     
                     reg->tamReg = reg->tamReg + len - reg->tamNomePessoa; //Atualiza o registro
                     reg->tamNomePessoa = len;
+                    
+                    free(reg->nomePessoa);
+                    reg->nomePessoa = (char *)calloc(len, 1);
                     strcpy(reg->nomePessoa, update[1]);
 
                     push_reg_to_memory(final_byte + bytes_increased, data_file, reg); //Escreve no arquivo
-
-                    bytes_increased = bytes_increased + reg->tamReg;
-                    num_removed++;
                     
                     // A pessoa com esse ID tem seu byte_offset atualizado no indice
-                    open_and_pull_index(index_file, idx_array, index_filename);
+                    open_and_pull_index(&index_file, &idx_array, index_filename);
                     int pos = index_binary_search(idx_array, reg->idPessoa);
                     idx_array->idx_arr[pos].byteOffset = final_byte + bytes_increased;
+
+                    bytes_increased = bytes_increased + reg->tamReg;
                 }
                 else
                 {
@@ -846,19 +849,21 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     fseek(data_file, current_byte, SEEK_SET);
                     char removed = '1';
                     fwrite(&removed, 1, 1, data_file);
+                    num_removed++;
                     
                     reg->tamReg = reg->tamReg + len - reg->tamNomeUsuario;
                     reg->tamNomeUsuario = len;
+                    
+                    free(reg->nomeUsuario);
+                    reg->nomeUsuario = (char *)calloc(len, 1);
                     strcpy(reg->nomeUsuario, update[1]);
 
                     push_reg_to_memory(final_byte + bytes_increased, data_file, reg);
 
-                    bytes_increased = bytes_increased + reg->tamReg;
-                    num_removed++;
-
-                    open_and_pull_index(index_file, idx_array, index_filename);
+                    open_and_pull_index(&index_file, &idx_array, index_filename);
                     int pos = index_binary_search(idx_array, reg->idPessoa);
                     idx_array->idx_arr[pos].byteOffset = final_byte + bytes_increased;
+                    bytes_increased = bytes_increased + reg->tamReg;
                 }
                 else
                 {

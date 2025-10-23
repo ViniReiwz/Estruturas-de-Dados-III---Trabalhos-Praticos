@@ -466,7 +466,7 @@ void print_data_register(DATA_DREG data_register)
 
 */
 
-DATA_DREG* pull_reg_to_memory(long byte_offset, FILE* data_file)
+DATA_DREG* pull_reg_from_memory(long byte_offset, FILE* data_file)
 {
    if (data_file == NULL) // testa se o arquivo existe
     {

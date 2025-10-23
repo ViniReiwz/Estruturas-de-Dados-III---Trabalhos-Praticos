@@ -169,6 +169,6 @@ void add_id_array(INDEX_ARR** idx_array, int id, long byte_offset);
         void
 */
 
-void open_and_pull_index(FILE* index_file, INDEX_ARR* idx_array, char* index_filename);
+void open_and_pull_index(FILE** index_file, INDEX_ARR** idx_array, char* index_filename);
 
 #endif
