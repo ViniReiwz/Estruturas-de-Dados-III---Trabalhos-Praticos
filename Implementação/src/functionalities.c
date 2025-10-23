@@ -692,3 +692,219 @@ void INSERT_INTO(char* data_filename, char *index_filename, int insert_number)
     binarioNaTela(data_filename);
     binarioNaTela(index_filename);
 }
+
+/*
+    Recebe o número de updates a serem feitas e o nome do arquivo de dados,
+    abre-o para leitura e escrita, caso exista. O usuário informa o valore
+    e o campo do registro a ser buscado e a ser alterado.
+
+    params:
+        const char* data_filename => nome do arquivo de dados a ser aberto
+        const char* index_filename => nome do arquivo de index caso seja nescessário
+        int update_number => número de atualizações a serem feitas
+
+    return:
+        void
+
+*/
+
+void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_number)
+{
+    char *data_path = get_file_path(data_filename); // Pega o caminho do arquivo de dados e
+    FILE *data_file = fopen(data_path, "r+b");       // abre-o para leitura e escrita
+    free(data_path);
+
+    if (data_file == NULL) // caso o arquivo não seja aberto, printa a mensagem de erro e sai da função
+    {
+        print_error();
+        return;
+    }
+
+    update_file_status(data_file, '0'); // atualiza o status para inconsistente
+
+    FILE* index_file = NULL;
+
+    int num_removed;                        // Le do cabeçalho o número de pessoas
+    fread(&num_removed, 4, 1, data_file);
+
+    INDEX_ARR* idx_array;  
+
+    fseek(data_file, 9, SEEK_SET);  // Posição do final byte no cabeçalho
+    long final_byte;
+    fread(&final_byte, 8, 1, data_file);
+
+    for(int i = 0; i < update_number; i++)
+    {
+        char str_in[100];
+        fgets(str_in, 100, stdin);
+
+        char** first_strip = strip_by_delim(str_in, '=');   // Separa a string por '='
+        
+        char** second_strip = strip_by_delim(first_strip[2], ' '); //Separa a string por ' '
+
+        char* search[1];
+        search[0] = first_strip[1];
+        remove_everychar_until_space(search[0]);    //Campo a ser buscado sem o número da busca
+        search[1] = second_strip[1];
+        remove_quotes(search[1]);   //Valor do campo sem aspas
+
+        char* update[1];
+        update[0] = second_strip[2];    //Campo a ser alterado
+        update[1] = first_strip[3];
+        remove_quotes(update[1]);
+        end_string_on_mark(update[1], "\n");
+        end_string_on_mark(update[1], "\r");    // Valor do campo a ser alterado sem aspas
+
+        long current_byte = DF_HEAD_REG_LEN;
+        long bytes_increased = 0;
+
+        // Como alterar o final byte atrapalharia na lógica da busca, o incremento é feito
+        // apenas no final, e é guardado quantos bytes o arquivo foi incrementado
+
+        while (current_byte < final_byte)
+        {
+            current_byte = WHERE(data_file, index_file, index_filename,
+                                 search[0], search[1], current_byte, final_byte);
+
+            if(current_byte >= final_byte)
+            {
+                break;
+            }
+
+            DATA_DREG* reg = create_data_dreg();
+            push_reg_to_memory(current_byte, data_file, reg);   //Pega um registro que satisfez a busca
+
+            int next_byte = reg->tamReg + 5 + current_byte;
+
+            if(strcmp(update[0], "idPessoa") == 0)
+            {   
+                //Abre o arquivo de indice e puxa o indeice para memória primária
+                open_and_pull_index(index_file, idx_array, index_filename);
+
+                //tira o ID do array
+                remove_id_array(idx_array, reg->idPessoa);
+
+                int id = atoi(update[1]);
+                fseek(data_file, current_byte + 5, SEEK_SET);
+                fwrite(&id, 4, 1, data_file);
+
+                // COloca o novo ID no array e ordena
+                add_id_array(&idx_array, id, current_byte);
+                order_index(idx_array);
+            }
+            else if(strcmp(update[0], "idadePessoa") == 0) 
+            {
+                int idade = atoi(update[1]);
+                fseek(data_file, current_byte + 9, SEEK_SET);
+                fwrite(&idade, 4, 1, data_file);
+            }
+            else if(strcmp(update[0], "nomePessoa") == 0)
+            {
+                int len = strlen(update[1]);
+                
+                if(reg->tamNomePessoa < len)    // Caso caiba não novo registro
+                {
+                    fseek(data_file, current_byte, SEEK_SET);   //Remove
+                    char removed = '1';
+                    fwrite(&removed, 1, 1, data_file);
+                    
+                    reg->tamReg = reg->tamReg + len - reg->tamNomePessoa; //Atualiza o registro
+                    reg->tamNomePessoa = len;
+                    strcpy(reg->nomePessoa, update[1]);
+
+                    push_reg_to_memory(final_byte + bytes_increased, data_file, reg); //Escreve no arquivo
+
+                    bytes_increased = bytes_increased + reg->tamReg;
+                    num_removed++;
+                    
+                    // A pessoa com esse ID tem seu byte_offset atualizado no indice
+                    open_and_pull_index(index_file, idx_array, index_filename);
+                    int pos = index_binary_search(idx_array, reg->idPessoa);
+                    idx_array->idx_arr[pos].byteOffset = final_byte + bytes_increased;
+                }
+                else
+                {
+                    int old_size_name = reg->tamNomePessoa;
+                    reg->tamNomePessoa = len;
+                    strcpy(reg->nomePessoa, update[1]);
+
+                    push_reg_to_memory(current_byte, data_file, reg);
+                    
+                    char trash = '$';   //Completa com lixo
+                    for(int j = 0; j < old_size_name - len; j++)
+                    {
+                        fwrite(&trash, 1, 1, data_file);
+                    }
+                }
+            }
+            else if(strcmp(update[0], "nomeUsuario") == 0)
+            {
+                int len = strlen(update[1]);
+                
+                if(reg->tamNomeUsuario < len)
+                {
+                    fseek(data_file, current_byte, SEEK_SET);
+                    char removed = '1';
+                    fwrite(&removed, 1, 1, data_file);
+                    
+                    reg->tamReg = reg->tamReg + len - reg->tamNomeUsuario;
+                    reg->tamNomeUsuario = len;
+                    strcpy(reg->nomeUsuario, update[1]);
+
+                    push_reg_to_memory(final_byte + bytes_increased, data_file, reg);
+
+                    bytes_increased = bytes_increased + reg->tamReg;
+                    num_removed++;
+
+                    open_and_pull_index(index_file, idx_array, index_filename);
+                    int pos = index_binary_search(idx_array, reg->idPessoa);
+                    idx_array->idx_arr[pos].byteOffset = final_byte + bytes_increased;
+                }
+                else
+                {
+                    int old_size_name = reg->tamNomeUsuario;
+                    reg->tamNomeUsuario = len;
+                    strcpy(reg->nomeUsuario, update[1]);
+
+                    push_reg_to_memory(current_byte, data_file, reg);
+                    
+                    char trash = '$';
+                    for(int j = 0; j < old_size_name - len; j++)
+                    {
+                        fwrite(&trash, 1, 1, data_file);
+                    }
+                }
+            }
+            else
+            {
+                exit(EXIT_FAILURE);
+            }
+            
+            destroy_data_dreg(reg);
+            current_byte = next_byte;
+        }
+        
+        final_byte = final_byte + bytes_increased;
+        destroy_strip_matrix(first_strip);
+        destroy_strip_matrix(second_strip);
+    }
+
+    if(index_file != NULL)
+    {
+        write_on_index_file(index_file, idx_array);   
+        destroy_index_arr(idx_array);
+
+        update_file_status(index_file, '1'); //atualiza o status do arquivo para consistente
+        fclose(index_file);
+    }
+
+    update_file_status(data_file, '1'); //atualiza o status do arquivo para consistente
+    fseek(data_file, 5, SEEK_SET);  // Pula para a parte do cabeçalho do num_pessoas removidas
+    fwrite(&num_removed, 4, 1, data_file);   //atualiza o cabeçalho
+    fwrite(&final_byte, 8, 1, data_file);
+
+    fclose(data_file);
+
+    binarioNaTela(data_filename);
+    binarioNaTela(index_filename);
+}

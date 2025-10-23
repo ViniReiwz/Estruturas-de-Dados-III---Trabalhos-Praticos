@@ -156,4 +156,19 @@ void remove_id_array(INDEX_ARR* idx_array, int id);
 
 void add_id_array(INDEX_ARR** idx_array, int id, long byte_offset);
 
+/*
+    Recebe um array de indice, um ponteiro para um arquivo de indice e seu nome, caso
+    o arquivo esteja fechado, abre-o para leitura e escrita e puxa o indice para memória primária
+
+    params:
+        FILE* index_file => arquivo de indice
+        INDEX_ARR* idx_array => array de índices
+        char* index_filename => nome do arquivo
+
+    return:
+        void
+*/
+
+void open_and_pull_index(FILE* index_file, INDEX_ARR* idx_array, char* index_filename);
+
 #endif
