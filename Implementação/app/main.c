@@ -126,6 +126,22 @@ int main()
             
             break;
         }
+    case 7:
+        {
+            if(atoi(args[0]) < 4)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                UPDATE_SET_WHERE(args[2],args[3],atoi(args[4]));
+            }
+            
+            break;
+        }
         
     default:
         {

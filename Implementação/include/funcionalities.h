@@ -103,4 +103,21 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_nu
 
 void INSERT_INTO(char* data_filename, char *index_filename, int insert_number);
 
+/*
+    Recebe o número de updates a serem feitas e o nome do arquivo de dados,
+    abre-o para leitura e escrita, caso exista. O usuário informa o valore
+    e o campo do registro a ser buscado e a ser alterado.
+
+    params:
+        const char* data_filename => nome do arquivo de dados a ser aberto
+        const char* index_filename => nome do arquivo de index caso seja nescessário
+        int update_number => número de atualizações a serem feitas
+
+    return:
+        void
+
+*/
+
+void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_number);
+
 #endif
