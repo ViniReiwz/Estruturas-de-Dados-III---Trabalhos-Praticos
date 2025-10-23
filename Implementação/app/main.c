@@ -144,7 +144,8 @@ int main()
         }
         
     default:
-        {
+        {   
+            reverse_date_string("20/12/2006") ;
             break;
         }
     }

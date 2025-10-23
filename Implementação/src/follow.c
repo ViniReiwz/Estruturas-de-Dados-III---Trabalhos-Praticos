@@ -212,3 +212,41 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
         i++;                                                            // Incrementa a posição do vetor
     }
 }
+
+/*
+    Função que compara dois registros de dados do arquivo 'segue', em função dos ids e, se necessário, das datas
+
+    params:
+        FOLLOW_DREG a,b => Registros a serem comparados;
+    
+    return:
+        int comparison => Valor menor ou maior que 0, que representa a 'posição' na ordenação que 'a' está em relação à 'b'.
+*/
+int compare_follow_dreg(FOLLOW_DREG a, FOLLOW_DREG b)
+{
+    if(a.idPessoaQueSegue == b.idPessoaQueSegue)
+    {
+        if(a.idPessoaQueESeguida == b.idPessoaQueESeguida)
+        {   
+            char* reversed_dataInicio_a= reverse_date_string(a.dataInicioQueSegue);
+            char* reversed_dataInicio_b= reverse_date_string(b.dataInicioQueSegue);
+
+            int comparison = strcmp(reversed_dataInicio_a,reversed_dataInicio_b);
+
+            if(comparison == 0)
+            {
+                return strcmp(a.dataFimQueSegue,b.dataFimQueSegue);
+            }
+
+            return comparison;
+        }
+
+        return a.idPessoaQueESeguida - b.idPessoaQueESeguida;
+    }
+    return a.idPessoaQueSegue - b.idPessoaQueSegue;
+}
+
+void ordenate_follow_dreg(FOLLOW_ARR* f_arr)
+{
+    qsort(f_arr->follow_arr,f_arr->len,sizeof(f_arr->follow_arr[0]),compare_follow_dreg);
+}

@@ -292,3 +292,31 @@ void remove_everychar_until_space(char *str)
 
     free(str_wo_space);
 }
+
+/*
+    Inverte a string de data do formato dd/mm/aaaa para aaaa/mm/dd
+
+    params:
+        char* date => String a ser invertida;
+    
+    return:
+        char* reversed_date => String já invertida.
+*/
+char* reverse_date_string(char* date)
+{
+    char* reversed_date = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca memória para a string revertida
+    
+    int d,m,a;
+    d = m = a = 0;                                                  // Variáveis auxiliares para guarar os valores das dadats (dia, mês e ano, respectivamente)
+
+    sscanf(date,"%i/%i/%i", &d, &m, &a);                            // Lê da string o dia, mês e ano
+    sprintf(reversed_date,"%4i/%2i/%2i", a, m, d);                  // Imprime no formato invertido na string reversed_data
+
+    if(DEBUG)                                                       // Mensagem de DEBUG para comparar as strings
+    {   
+        printf("DATA ORIGINAL --> %s\n",date);
+        printf("DATA REVERTIDA --> %s\n",reversed_date);
+    }
+
+    return reversed_date;                                           // Retorna a string invertida
+}
