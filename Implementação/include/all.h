@@ -1,5 +1,5 @@
 /*
-                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+                                TRABALHO PRÁTICO - ESTRUTURA DE DADOS III
                                 
                                 Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
@@ -18,6 +18,7 @@
 
 #include "index.h"
 #include "data.h"
+#include "follow.h"
 #include "own_utils.h"
 #include "utilidades.h"
 #include "funcionalities.h"
