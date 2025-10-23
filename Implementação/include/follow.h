@@ -9,7 +9,10 @@
 
 #ifndef FOLLOW_H
 #define FOLLOW_H
+
 #define DATE_LEN 10
+#define FOLLOW_DATA_REG_LEN 30
+
 #include "all.h"
 
 typedef struct _follow_hreg // Registro de cabeçalho do arquivo 'segue'
@@ -35,6 +38,7 @@ typedef struct _follow_dreg_array
 {
 
     int len;
+    FOLLOW_HREG* follow_hreg;
     FOLLOW_DREG* follow_arr;
 
 }FOLLOW_ARR;
@@ -100,5 +104,29 @@ void destroy_follow_hreg(FOLLOW_HREG* follow_hreg);
         void.
 */
 void destroy_follow_array(FOLLOW_ARR* follow_array);
+
+/*
+    Lê um arquivo binário do tipo 'segue' e coloca seus dados em memória primária
+
+    params:
+        FILE* follow_file => Ponteiro para o arquivo do tipo 'segue';
+    
+    return:
+        FOLLOW ARR* f_arr => Estrutura de dados contendo o arquivo 'segue' inteiro e memória primária, com o número de registros de dados, o registro de cabeçalho e o registro de dados propriamente ditos, sendo estes organizados em um vetor.
+*/
+FOLLOW_ARR* read_follow_file(FILE* follow_file);
+
+/*
+    Escreve os dados em um arquivo binário do tipo 'segue'
+
+    params:
+        FILE* follow_file => Ponteiro para o arquivo a ser escrito;
+        FOLLOW_ARR* f_arr => Dados do arquivo em memória primária;
+    
+    return:
+        void.
+*/
+void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr);
+
 
 #endif

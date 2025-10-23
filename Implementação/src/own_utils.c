@@ -131,15 +131,17 @@ void print_error()
         void
 */
 void print_ddreg(DATA_DREG* ddreg)
-{
-    printf("\'removido\' no registro: %c\n",ddreg->removido);
-    printf("\'tamanhORegistro\' no registro: %i\n",ddreg->tamReg);
-    printf("\'idPessoa\' no registro: %i\n",ddreg->idPessoa);
-    printf("\'idadePessoa\' no registro: %i\n",ddreg->idadePessoa);
-    printf("\'tamanhoNomePessoa\' no registro: %i\n",ddreg->tamNomePessoa);
-    printf("\'nomePessoa\' no registro: %s\n",ddreg->nomePessoa);
-    printf("\'tamanhoNomeUsuário\' no registro: %i\n",ddreg->tamNomeUsuario);
-    printf("\'nomeUsuário\' no registro: %s\n",ddreg->nomeUsuario);
+{   
+    puts("");
+    printf("\n\'removido\' ==> %c\n",ddreg->removido);
+    printf("\'tamanhORegistro\' ==> %i\n",ddreg->tamReg);
+    printf("\'idPessoa\' no registro ==> %i\n",ddreg->idPessoa);
+    printf("\'idadePessoa\' no registro ==> %i\n",ddreg->idadePessoa);
+    printf("\'tamanhoNomePessoa\' no registro ==> %i\n",ddreg->tamNomePessoa);
+    printf("\'nomePessoa\' no registro ==> %s\n",ddreg->nomePessoa);
+    printf("\'tamanhoNomeUsuário\' no registro ==> %i\n",ddreg->tamNomeUsuario);
+    printf("\'nomeUsuário\' no registro ==> %s\n",ddreg->nomeUsuario);
+    puts("");
 }
 
 /*
@@ -155,6 +157,27 @@ void print_index(INDEX_DREG idx)
     puts("");
     printf("\'id\' ==> %i\n",idx.idPessoa);
     printf("\'byte offset\' ==> %li\n",idx.byteOffset);
+    puts("");
+}
+
+/*
+    Exibe um registro de dados do arquivo binário do tipo 'segue' carregado em memória primária
+
+    params:
+        FOLLOW_DREG flw_dreg => Registro a ser exibido;
+    
+    return:
+        void.
+*/
+void print_follow_dreg(FOLLOW_DREG flw_dreg)
+{
+    puts("");
+    printf("\n\'removido\' ==> %c\n",flw_dreg.removido);
+    printf("\'idPessoaQueSegue\' ==> %i\n",flw_dreg.idPessoaQueSegue);
+    printf("\'idPessoaQueESeguida\' ==> %i\n",flw_dreg.idPessoaQueESeguida);
+    printf("\'dataInicioQueSegue\' ==> %s\n",flw_dreg.dataInicioQueSegue);
+    printf("\'dataFimQueSegue ==> %s\n",flw_dreg.dataFimQueSegue);
+    printf("\'grauAmizade\' ==> %c\n",flw_dreg.grauAmizade);
     puts("");
 }
 
@@ -240,7 +263,6 @@ void remove_quotes(char* str)
     return:
         void
 */
-
 void remove_everychar_until_space(char *str)
 {
     if(str == NULL)

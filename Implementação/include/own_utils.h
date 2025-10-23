@@ -90,6 +90,17 @@ void print_ddreg(DATA_DREG* ddreg);
 void print_index(INDEX_DREG idx);
 
 /*
+    Exibe um registro de dados do arquivo binário do tipo 'segue' carregado em memória primária
+
+    params:
+        FOLLOW_DREG flw_dreg => Registro a ser exibido;
+    
+    return:
+        void.
+*/
+void print_follow_dreg(FOLLOW_DREG flw_dreg);
+
+/*
     Retorna o caminho relativo do arquivo
 
     params:
@@ -133,8 +144,6 @@ void remove_quotes(char* str);
     return:
         void
 */
-
-
 void remove_everychar_until_space(char *str);
 
 

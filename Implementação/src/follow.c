@@ -62,6 +62,7 @@ FOLLOW_ARR* create_follow_arr(int len)
     FOLLOW_ARR* follow_array = (FOLLOW_ARR*)calloc(1,sizeof(FOLLOW_ARR));       // Aloca a memória para uma variável do tipo FOLLO_ARR
     follow_array->len = len;                                                    // Atribui o tamanho à estrutura de dados
     follow_array->follow_arr = (FOLLOW_DREG*)calloc(len,sizeof(FOLLOW_DREG));   // Aloca a memória de um vetor com 'len' poisções que armazenam variáveis do tipo FOLLOW_DREG
+    follow_array->follow_hreg = (FOLLOW_HREG*)calloc(1,sizeof(FOLLOW_HREG));
     return follow_array;                                                        // Retorna o endereço de memória da região alocada
 
 }
@@ -113,4 +114,101 @@ void destroy_follow_array(FOLLOW_ARR* follow_array)
     }
     free(follow_array->follow_arr);                         // Libera a memória do vetor em si
     free(follow_array);
+}
+
+/*
+    Lê um arquivo binário do tipo 'segue' e coloca seus dados em memória primária
+
+    params:
+        FILE* follow_file => Ponteiro para o arquivo do tipo 'segue';
+    
+    return:
+        FOLLOW ARR* f_arr => Estrutura de dados contendo o arquivo 'segue' inteiro e memória primária, com o número de registros de dados, o registro de cabeçalho e o registro de dados propriamente ditos, sendo estes organizados em um vetor.
+*/
+FOLLOW_ARR* read_follow_file(FILE* follow_file)
+{
+    fseek(follow_file,1,SEEK_SET);                                          // Pula o campo 'status' para leitura
+
+    int len = 0;
+    fread(&len,4,1,follow_file);                                            // Lê o número de registros de dados no arquivo (campo 'qtdPessoas', 4 bytes)
+
+    FOLLOW_ARR* f_arr = create_follow_arr(len);                             // Aloca o espaço necessária para guardar  arquivo em memóira primária
+    FOLLOW_HREG* f_hreg = f_arr->follow_hreg;                               // f_hreg = f_arr->follow_hreg para simplificar a sintaxe
+    FOLLOW_DREG* f_dregvec = f_arr->follow_arr;                             // f_dregvec = f_arr->follow_arr para simplificação de sintaxe
+
+    f_hreg->qtdPessoas  = len;                                              // Guarda o campo 'qtdPessoas' na estrutura de dados
+    fread(&f_hreg->proxRRN,4,1,follow_file);                                // Lê o próximo registro disponível para inserção e o guarda em memória primária
+
+    int file_size = FOLLOW_DATA_REG_LEN * f_hreg->qtdPessoas;               // Variável que guarda o tamanho total do arquivo (descontando o registro de cabeçalho)
+    int file_pos = 0;                                                       // Variável auxiliar para detectar quando o arquivo fora completamente lido
+    int i = 0;                                                              // Variável auxiliar para indicar a posição do vetor de registros em memória primária
+
+    while (file_pos<file_size)                                              // Lê todo o arquivo
+    {
+        char removido;
+        fread(&removido,1,1,follow_file);                                   // Verifica se o registro não foi removido
+        if(removido == '0')                                                 // Caso não tenha sido removido, lê o registro completo
+        {
+            f_dregvec[i].removido = removido;                               // Guarda o campo 'removido' (1 byte)
+            fread(&f_dregvec[i].idPessoaQueSegue,4,1,follow_file);          // Guarda o campo 'idPessoaQueSegue' (4 bytes)
+            fread(&f_dregvec[i].idPessoaQueESeguida,4,1,follow_file);       // Guarda o campo 'idPessoaQueESeguida' (4 bytes)
+            fread(&f_dregvec[i].dataInicioQueSegue,10,1,follow_file);       // Guarda o campo 'dataInicioQueSegue' (10 bytes)
+            fread(&f_dregvec[i].dataFimQueSegue,10,1,follow_file);          // Guarda o campo 'dataFimQueSegue' (10 bytes)
+            fread(&f_dregvec[i].grauAmizade,1,1,follow_file);               // Guarda o campo 'grauAmizade' (1 byte)
+
+            if(DEBUG)                                                       // Mensage de DEBUG que exibe o registro
+            {
+                print_follow_dreg(f_dregvec[i]);
+            }
+
+            i++;                                                            // Incrementa a posição do vetor
+        }
+        else                                                                // Caso o registro tenha qualquer valor diferente de '0' em 'removido', pula ele na leitura
+        {
+            fseek(follow_file,FOLLOW_DATA_REG_LEN,SEEK_CUR);
+        }
+
+        file_pos += FOLLOW_DATA_REG_LEN;                                    // Incrementa na variável auxiliar de posição
+    }
+    
+    return f_arr;                                                           // Retorna o arquivo em memória primária
+}
+
+/*
+    Escreve os dados em um arquivo binário do tipo 'segue'
+
+    params:
+        FILE* follow_file => Ponteiro para o arquivo a ser escrito;
+        FOLLOW_ARR* f_arr => Dados do arquivo em memória primária;
+    
+    return:
+        void.
+*/
+void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
+{
+
+    FOLLOW_HREG* f_hreg = f_arr->follow_hreg;                           // Simplificação de sintaxe
+    FOLLOW_DREG* f_dregvec = f_arr->follow_arr;                         // Simplificação de sintaxe
+
+    char status = '0';                                                  // Inicializa o arquivo com status '0' (inconsistente)
+    fwrite(&status,1,1,follow_file);
+
+    fwrite(&f_hreg->qtdPessoas,4,1,follow_file);                        // Escreve o campo 'qtdPessoas' (4 bytes)
+    fwrite(&f_hreg->proxRRN,4,1,follow_file);                           // Escreve o campo 'proxRRN' (4 bytes)
+
+    int file_size = FOLLOW_DATA_REG_LEN * f_hreg->qtdPessoas;           // Variável que guarda o tamanho do arquivo descontando o registro de cabeçalho
+    int file_pos = 0;                                                   // Variável auxiliar para detectar o fim do arquivo
+    int i = 0;                                                          // Variável que percorre as posições do vetor de registros
+
+    while (file_pos < file_size)                                        // Atua enquanto o arquivo nao terminar
+    {
+        fwrite(&f_dregvec[i].removido,1,1,follow_file);                 // Escreve o campo 'removido' (1 byte)
+        fwrite(&f_dregvec[i].idPessoaQueSegue,4,1,follow_file);         // Escreve o campo 'idPessoaQueSegue' (4 bytes)
+        fwrite(&f_dregvec[i].idPessoaQueESeguida,4,1,follow_file);      // Escreve o campo 'idPessoaQueESeguida' (4 bytes)
+        fwrite(&f_dregvec[i].dataInicioQueSegue,10,1,follow_file);      // Escreve o campo 'dataInicioQUeSegue' (10 bytes)
+        fwrite(&f_dregvec[i].dataFimQueSegue,10,1,follow_file);         // Escreve o campo 'datFimQueSegue' (10 bytes)
+        fwrite(&f_dregvec[i].grauAmizade,1,1,follow_file);              // Escreve o campo 'grauAmizade' (1 byte)
+
+        i++;                                                            // Incrementa a posição do vetor
+    }
 }
