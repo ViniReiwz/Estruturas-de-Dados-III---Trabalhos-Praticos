@@ -129,4 +129,6 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file);
 void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr);
 
 
+void ordenate_follow_dreg(FOLLOW_ARR* f_arr);
+
 #endif
