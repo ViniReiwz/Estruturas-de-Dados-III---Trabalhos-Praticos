@@ -305,11 +305,12 @@ void remove_everychar_until_space(char *str)
 char* reverse_date_string(char* date)
 {
     char* reversed_date = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca memória para a string revertida
-    
-    int d,m,a;
-    d = m = a = 0;                                                  // Variáveis auxiliares para guarar os valores das dadats (dia, mês e ano, respectivamente)
 
-    sscanf(date,"%i/%i/%i", &d, &m, &a);                            // Lê da string o dia, mês e ano
+    char** date_matrix = strip_by_delim(date,'/');                  // Usa strip_by_delim para separar em dia, mes e ano
+    int d = atoi(date_matrix[1]);
+    int m = atoi(date_matrix[2]);                                   // Atribui à uma variável do tipo int
+    int a = atoi(date_matrix[3]);
+
     sprintf(reversed_date,"%4i/%2i/%2i", a, m, d);                  // Imprime no formato invertido na string reversed_data
 
     if(DEBUG)                                                       // Mensagem de DEBUG para comparar as strings
@@ -317,6 +318,8 @@ char* reverse_date_string(char* date)
         printf("DATA ORIGINAL --> %s\n",date);
         printf("DATA REVERTIDA --> %s\n",reversed_date);
     }
+
+    destroy_strip_matrix(date_matrix);                              // Libera a memória da matriz com os valores de data
 
     return reversed_date;                                           // Retorna a string invertida
 }

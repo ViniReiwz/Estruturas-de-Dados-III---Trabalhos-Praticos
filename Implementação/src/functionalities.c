@@ -914,49 +914,62 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
     binarioNaTela(index_filename);
 }
 
+/*
+    Lê do arquivo 'segue' e ordena seus registros de forma crescente, seguindo a hierarquia:
+        idPessoaQueSegue -> idPessoaQueESeguida -> dataInicioQueSegue -> dataFimQueSegue
+    
+    params:
+        const char* src_filename => Nome do arquivo que deseja-se ordenar os registros;
+        const char* ord_dest_filename => Nome do arquivo que receberá os registros ordenados;
+    
+    return:
+        void.
+*/
 void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
 {
-    char* src_filepath = get_file_path(src_filename);
+    char* src_filepath = get_file_path(src_filename);                       // Pega o caminho dos arquivos
     char* ord_dest_filepath = get_file_path(ord_dest_filename);
 
-    FILE* src_file = fopen(src_filepath,"rb");
+    FILE* src_file = fopen(src_filepath,"rb");                              // Abre para leitura o arquivo fonte
     if(src_file == NULL)
     {
         if(DEBUG)
         {
             printf("Arquivo %s inexistente\n",src_filepath);
         }
-        print_error();
+        print_error();                                                      // Exibe mensagem de erro e sai do programa caso não exista
         exit(EXIT_FAILURE);
     }
 
-    FILE* ord_dest_file = fopen(ord_dest_filepath,"wb");
+    FILE* ord_dest_file = fopen(ord_dest_filepath,"wb");                    // Abre o arquiv destino para escrita
     if(ord_dest_file == NULL)
     {
         if(DEBUG)
         {
             printf("Impossível de criar arquivo %s\n",ord_dest_filepath);
         }
-        print_error();
+        print_error();                                                      // Caso não seja criado, exibe mensagem de erro e encerra o programa
         exit(EXIT_FAILURE);
     }
 
-    update_file_status(ord_dest_file,'1');
+    update_file_status(ord_dest_file,'0');                                  // Atualiza o status do arquivo destino para '0' (inconsistente)
 
-    free(src_filepath);
+    free(src_filepath);                                                     // Libera o espaço da string do arquivo fonte
     
-    FOLLOW_ARR* f_arr = read_follow_file(src_file);
+    FOLLOW_ARR* f_arr = read_follow_file(src_file);                         // Lê do arquivo fonte e o coloca em memória primária
 
-    fclose(src_file);
+    fclose(src_file);                                                       // Fecha o arquivo fonte
     
-    ordenate_follow_dreg(f_arr);
+    ordenate_follow_dreg(f_arr);                                            // Ordena os registros do arquivo
 
-    write_on_follow_file(ord_dest_file,f_arr);
+    write_on_follow_file(ord_dest_file,f_arr);                              // Escreve os registros no arquivo de destino, já ordenados
 
-    update_file_status(ord_dest_file,'0');
-    fclose(ord_dest_file);
+    destroy_follow_array(f_arr);                                            // Libera o espaço alocado para os registros em memória primária
 
-    binarioNaTela(ord_dest_filepath);
-    free(ord_dest_filepath);
+    update_file_status(ord_dest_file,'1');                                  // Atualiza o status do arquivo de destino para '1' (consistente)                     
+    fclose(ord_dest_file);                                                  // Fecha o arquivo de destino
+
+    binarioNaTela(ord_dest_filepath);                                      
+    free(ord_dest_filepath);                                                // Usa binarioNaTela e libera a memória da string com o caminho do arquivo de destino
 
 }

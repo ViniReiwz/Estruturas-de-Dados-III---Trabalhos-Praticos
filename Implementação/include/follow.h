@@ -128,7 +128,24 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file);
 */
 void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr);
 
+/*
+    Função que compara dois registros de dados do arquivo 'segue', em função dos ids e, se necessário, das datas
 
+    params:
+        FOLLOW_DREG a,b => Registros a serem comparados;
+    
+    return:
+        int comparison => Valor menor ou maior que 0, que representa a 'posição' na ordenação que 'a' está em relação à 'b'.
+*/
+int compare_follow_dreg(const void* a, const void* b);
+
+/*
+    Ordena um vetor de registros do arquivo 'segue', seguindo as especificações do trabalho prático:
+        idPessoaQueSegue -> idPessoaQueESeguido -> dataInicioSegue -> dataFimSegue
+
+    params:
+        FOLLOW_ARR* f_arr => Vetor à ser ordenado
+*/
 void ordenate_follow_dreg(FOLLOW_ARR* f_arr);
 
 #endif

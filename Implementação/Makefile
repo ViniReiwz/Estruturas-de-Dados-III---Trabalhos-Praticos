@@ -11,6 +11,7 @@ libed:
 		gcc -ggdb -c $(SRC)/index.c -I $(INC) -o $(OBJ)/index.o
 		gcc -ggdb -c $(SRC)/utilidades.c -I $(INC) -o $(OBJ)/utilidades.o
 		gcc -ggdb -c $(SRC)/own_utils.c -I $(INC) -o $(OBJ)/own_utils.o
+		gcc -ggdb -c $(SRC)/follow.c -I $(INC) -o $(OBJ)/follow.o
 		gcc -ggdb -c $(SRC)/functionalities.c -I $(INC) -o $(OBJ)/functionalities.o
 
 myapps:

@@ -222,31 +222,42 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
     return:
         int comparison => Valor menor ou maior que 0, que representa a 'posição' na ordenação que 'a' está em relação à 'b'.
 */
-int compare_follow_dreg(FOLLOW_DREG a, FOLLOW_DREG b)
+int compare_follow_dreg(const void* a, const void* b)
 {
-    if(a.idPessoaQueSegue == b.idPessoaQueSegue)
+
+    const FOLLOW_DREG* ca = (const FOLLOW_DREG *)a;                                     // Faz o cast do ponteiro para o tipo de dados desejado
+    const FOLLOW_DREG* cb = (const FOLLOW_DREG *)b;
+
+    if(ca->idPessoaQueSegue == cb->idPessoaQueSegue)                                    // Verifica se o campo 'idPessoaQueSegue' é igual em ambos os registros
     {
-        if(a.idPessoaQueESeguida == b.idPessoaQueESeguida)
+        if(ca->idPessoaQueESeguida == cb->idPessoaQueESeguida)                          // Verifica se o campo 'idPessoaQueESeguida' é igual em ambos os registros
         {   
-            char* reversed_dataInicio_a= reverse_date_string(a.dataInicioQueSegue);
-            char* reversed_dataInicio_b= reverse_date_string(b.dataInicioQueSegue);
+            char* reversed_dataInicio_a= reverse_date_string(ca->dataInicioQueSegue);   // Inverte a string 'dataInicioQueSegue' para comparar mais facilmente
+            char* reversed_dataInicio_b= reverse_date_string(cb->dataInicioQueSegue);
 
-            int comparison = strcmp(reversed_dataInicio_a,reversed_dataInicio_b);
+            int comparison = strcmp(reversed_dataInicio_a,reversed_dataInicio_b);       // Valor do strcmp
 
-            if(comparison == 0)
+            if(comparison == 0)                                                         // Verifica se ambas as strings anteriores são iguais
             {
-                return strcmp(a.dataFimQueSegue,b.dataFimQueSegue);
+                return strcmp(ca->dataFimQueSegue,cb->dataFimQueSegue);                 // Ordena por 'dataFimQueSegue'
             }
 
-            return comparison;
+            return comparison;                                                          // Ordena por 'dataInicioQueSegue'
         }
 
-        return a.idPessoaQueESeguida - b.idPessoaQueESeguida;
+        return ca->idPessoaQueESeguida - cb->idPessoaQueESeguida;                       // Ordena por 'idPessoaQueESeguida'
     }
-    return a.idPessoaQueSegue - b.idPessoaQueSegue;
+    return ca->idPessoaQueSegue - cb->idPessoaQueSegue;                                 // Ordena por 'idPessoaQueSegue'
 }
 
+/*
+    Ordena um vetor de registros do arquivo 'segue', seguindo as especificações do trabalho prático:
+        idPessoaQueSegue -> idPessoaQueESeguido -> dataInicioSegue -> dataFimSegue
+
+    params:
+        FOLLOW_ARR* f_arr => Vetor à ser ordenado
+*/
 void ordenate_follow_dreg(FOLLOW_ARR* f_arr)
 {
-    qsort(f_arr->follow_arr,f_arr->len,sizeof(f_arr->follow_arr[0]),compare_follow_dreg);
+    qsort(f_arr->follow_arr,f_arr->len,sizeof(f_arr->follow_arr[0]),compare_follow_dreg);   // Chama a funçlão de quicksort já implementada na stdlib.h do C (Utiliza a função comapre_follow_hreg para comaprar os registros)
 }

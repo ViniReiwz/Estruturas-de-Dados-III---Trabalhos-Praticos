@@ -142,10 +142,25 @@ int main()
             
             break;
         }
+
+        case 9:
+        {
+            if(atoi(args[0]) < 2)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                ORDER_BY(args[1],args[2]);
+            }
+            break;
+        }
         
     default:
         {   
-            reverse_date_string("20/12/2006") ;
             break;
         }
     }
