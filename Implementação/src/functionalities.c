@@ -913,3 +913,20 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
     binarioNaTela(data_filename);
     binarioNaTela(index_filename);
 }
+
+void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
+{
+    char* src_filepath = get_file_path(src_filename);
+    char* ord_dest_filepath = get_file_path(ord_dest_filename);
+
+    FILE* src_file = fopen(src_filepath,"rb");
+    if(src_file == NULL)
+    {
+        if(DEBUG)
+        {
+            printf("");
+        }
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+}
