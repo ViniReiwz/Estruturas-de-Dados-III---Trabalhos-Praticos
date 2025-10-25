@@ -259,5 +259,60 @@ int compare_follow_dreg(const void* a, const void* b)
 */
 void ordenate_follow_dreg(FOLLOW_ARR* f_arr)
 {
-    qsort(f_arr->follow_arr,f_arr->len,sizeof(f_arr->follow_arr[0]),compare_follow_dreg);   // Chama a funçlão de quicksort já implementada na stdlib.h do C (Utiliza a função comapre_follow_hreg para comaprar os registros)
+    qsort(f_arr->follow_arr,f_arr->len,sizeof(f_arr->follow_arr[0]),compare_follow_dreg);   // Chama a função de quicksort já implementada na stdlib.h do C (Utiliza a função comapre_follow_hreg para comparar os registros)
+}
+
+
+/*
+    Exibe o registro de dados do arquivo do tipo 'segue' formatado para a saída desejada
+
+    params:
+        FOLLOW_DREG* f_dreg => Registro a ser impresso, em memória primária;
+    
+    return:
+        void.
+*/
+void printf_fdreg(FOLLOW_DREG* f_dreg)
+{
+    printf("Segue a pessoa de codigo: %i\n",f_dreg->idPessoaQueESeguida);   // Imprime 'idPessoaQueESeguida'
+    
+    char follow_why[50];                                                    // String para guardar motivo de seguir
+    switch (f_dreg->grauAmizade)                                            // Varia para cada grau de amizade
+    {
+        case '0':
+        {
+            strcpy(follow_why,"celebridade");
+            break;
+        }
+        
+        case '1':
+        {
+            strcpy(follow_why,"amiga de minha amiga");
+            break;
+        }
+
+        case '2':
+        {
+            strcpy(follow_why,"minha amiga");
+            break;
+        }
+
+        default:
+        {
+            strcpy(follow_why,"-");
+            break;
+        }
+    }
+
+    printf("Justificativa para seguir: %s\n\n",follow_why);             // Imprime a justificativa pra seguir e um caracter de 'nova linha'
+}
+
+FOLLOW_DREG* WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa, int curr_pos)
+{   
+    FOLLOW_DREG* f_dregvec = f_arr->follow_arr;
+    for(int i = curr_pos; i < f_arr->len; i++)
+    {
+        if(f_dregvec[i].idPessoaQueSegue == idPessoa){return &f_dregvec[i];}
+    }
+    return NULL;
 }

@@ -323,3 +323,20 @@ char* reverse_date_string(char* date)
 
     return reversed_date;                                           // Retorna a string invertida
 }
+
+char** read_for_search()
+{
+    char str_in[50];          // Interage com usuário, pegando uma string do tipo
+    fgets(str_in, 50, stdin); //"n tipoCampo=Valor"
+    printf("%s",str_in);
+    char **number_and_type = strip_by_delim(str_in, ' ');           // separa o tipo do número
+    printf("number and type == %s%s",number_and_type[1],number_and_type[2]);
+    char **type_and_value = strip_by_delim(number_and_type[1], '=');        // separa o tipo e valor
+
+    remove_quotes(type_and_value[2]); // remove as aspas do valor
+
+    end_string_on_mark(type_and_value[2], "\n"); // retira o '\n' e o '\r' das strings
+    end_string_on_mark(type_and_value[2], "\r"); // lidas
+
+    return type_and_value;
+}

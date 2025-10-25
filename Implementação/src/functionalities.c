@@ -203,7 +203,7 @@ void SELECT_FROM_TABLE(const char *data_filename)
 
 */
 
-long WHERE(FILE *data_file, FILE *index_file, const char* index_filename, char *type, char *value, long current_byte, long final_byte)
+long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename, char *type, char *value, long current_byte, long final_byte)
 {
     fseek(data_file, current_byte, SEEK_SET);   //Coloca o cursor do arquivo no byte atual
 
@@ -407,7 +407,7 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
         while(1)
         {
             // Procura o primeiro byte offset desejado depois do byte_atual
-            current_byte = WHERE(data_file, index_file, index_filename,
+            current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
                            number_type[2], type_and_value[2], current_byte, final_byte);
             
             if(current_byte >= final_byte) //Caso o byte atual chegue no final para a busca
@@ -454,7 +454,7 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
 
 */
 
-void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_number)
+void DELETE_FROM_WHERE(char *data_filename, char *index_filename, int delete_number)
 {
     char *data_path = get_file_path(data_filename); // Pega o caminho do arquivo de dados e
     FILE *data_file = fopen(data_path, "r+b");       // abre-o para leitura e escrita
@@ -512,7 +512,7 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_nu
         while(1)
         {
             // Procura o primeiro byte offset desejado depois do byte_atual
-            current_byte = WHERE(data_file, index_file, index_filename,
+            current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
                            number_type[2], type_and_value[2], current_byte, final_byte);
             
             if(current_byte >= final_byte) //Caso o byte atual chegue no final para a busca
@@ -764,7 +764,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
 
         while (current_byte < final_byte)
         {
-            current_byte = WHERE(data_file, index_file, index_filename,
+            current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
                                  search[0], search[1], current_byte, final_byte);
 
             if(current_byte >= final_byte)
@@ -972,4 +972,36 @@ void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
     binarioNaTela(ord_dest_filepath);                                      
     free(ord_dest_filepath);                                                // Usa binarioNaTela e libera a memória da string com o caminho do arquivo de destino
 
+}
+
+void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, const char* follow_filename, int search_number)
+{
+    char* data_filepath = get_file_path(data_filename);
+    FILE* data_file = fopen(data_filepath,"rb");
+    if(data_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    
+    char* index_filepath = get_file_path(index_filename);
+    FILE* index_file = fopen(index_filepath,"rb");
+    if(index_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath,"rb");
+    if(follow_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    
 }

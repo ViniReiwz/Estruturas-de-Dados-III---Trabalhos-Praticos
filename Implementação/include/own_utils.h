@@ -157,5 +157,7 @@ void remove_everychar_until_space(char *str);
 */
 char* reverse_date_string(char* date);
 
+char** read_for_search();
+
 
 #endif

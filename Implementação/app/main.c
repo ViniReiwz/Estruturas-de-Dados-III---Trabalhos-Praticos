@@ -161,6 +161,9 @@ int main()
         
     default:
         {   
+            char** type_and_val = read_for_search();
+            printf("type == %s",type_and_val[1]);
+            printf("val == %s",type_and_val[2]);
             break;
         }
     }
