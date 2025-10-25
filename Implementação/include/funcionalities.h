@@ -120,4 +120,6 @@ void INSERT_INTO(char* data_filename, char *index_filename, int insert_number);
 
 void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_number);
 
+void ORDER_BY(const char* src_filename, const char* ord_dest_filename);
+
 #endif

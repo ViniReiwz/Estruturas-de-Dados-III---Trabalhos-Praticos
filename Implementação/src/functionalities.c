@@ -942,9 +942,39 @@ void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
     {
         if(DEBUG)
         {
-            printf("");
+            printf("Arquivo %s inexistente\n",src_filepath);
         }
         print_error();
         exit(EXIT_FAILURE);
     }
+
+    FILE* ord_dest_file = fopen(ord_dest_filepath,"wb");
+    if(ord_dest_file == NULL)
+    {
+        if(DEBUG)
+        {
+            printf("Impossível de criar arquivo %s\n",ord_dest_filepath);
+        }
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    update_file_status(ord_dest_file,'1');
+
+    free(src_filepath);
+    
+    FOLLOW_ARR* f_arr = read_follow_file(src_file);
+
+    fclose(src_file);
+    
+    ordenate_follow_dreg(f_arr);
+
+    write_on_follow_file(ord_dest_file,f_arr);
+
+    update_file_status(ord_dest_file,'0');
+    fclose(ord_dest_file);
+
+    binarioNaTela(ord_dest_filepath);
+    free(ord_dest_filepath);
+
 }
