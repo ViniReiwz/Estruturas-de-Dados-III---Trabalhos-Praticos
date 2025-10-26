@@ -14,7 +14,7 @@
 #define MAX_ARGS 10         // Número máximo de argumentos para cada opção
 #define ARG_LEN 50          // Tamanho médio de cada argumento
 #define FILE_DIR "./"       // Pasta em que todos os arquivos devem ser procurados ou salvos
-#define DEBUG 1             // Variável de deubg, habilita os prints nas funções
+#define DEBUG 0             // Variável de deubg, habilita os prints nas funções
 #define ERROR_MSG "Falha no processamento do arquivo." // Variável de mensagem de erro padrão
 
 #include "all.h"

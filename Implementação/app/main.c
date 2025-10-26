@@ -142,10 +142,9 @@ int main()
             
             break;
         }
-
-        case 9:
-        {
-            if(atoi(args[0]) < 2)
+    case 8:
+          {
+            if(atoi(args[0]) < 3)
             {
                 if(DEBUG)
                 {
@@ -154,9 +153,26 @@ int main()
             }
             else
             {
-                ORDER_BY(args[1],args[2]);
+
+                CREATE_FOLLOW_TABLE(args[2],args[3]);
             }
+            
             break;
+          }
+      case 9:
+        {
+          if(atoi(args[0]) < 3)
+          {
+            if(DEBUG)
+            {
+              printf("Poucos argumentos!!\n");
+            }
+          }
+          else
+          {
+            ORDER_BY(args[2],args[3])
+          }
+          break;
         }
         
     default:

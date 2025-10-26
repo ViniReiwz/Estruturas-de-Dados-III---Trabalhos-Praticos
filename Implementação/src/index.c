@@ -364,4 +364,9 @@ void open_and_pull_index(FILE** index_file, INDEX_ARR** idx_array, char* index_f
 
         *idx_array = save_index_in_mem(*index_file);
     }
+    else if (*idx_array == NULL) //Caso o arquivo esteja aberto, mas o indice não esteja em memória primario
+    {
+        *idx_array = save_index_in_mem(*index_file);
+    }
+    
 }

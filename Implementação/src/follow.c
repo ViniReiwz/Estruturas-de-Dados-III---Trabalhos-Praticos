@@ -23,8 +23,8 @@ FOLLOW_DREG* create_follow_dreg()
     follow_dreg->removido = '0';                                            // Inicia o campo 'removido' como '0' por padrão
     follow_dreg->idPessoaQueSegue = follow_dreg->idPessoaQueESeguida = -1;  // Inicia os campos relacionados à pessoa que segue/é seguida como -1 (valor null para inteiros)
     follow_dreg->grauAmizade = '$';                                         // Inicia o campo 'grauAmziade' como '$' (null para char)
-    follow_dreg->dataInicioQueSegue = (char*)calloc(DATE_LEN,sizeof(char)); // Aloca 10 bytes para ambas as strings que representam os campos de data
-    follow_dreg->dataFimQueSegue = (char*)calloc(DATE_LEN,sizeof(char));    // Ver 'DATE_LEN' EM include/follow.h para alterar o valor
+    follow_dreg->dataInicioQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca 10 bytes para ambas as strings que representam os campos de data
+    follow_dreg->dataFimQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char));    // Ver 'DATE_LEN' EM include/follow.h para alterar o valor
 
     for(int i = 0; i < DATE_LEN; i ++)                                      // Inicializa ambas as strings com o valo '$' em cada caracter -> Representa lixo de memória / null
     {
@@ -63,8 +63,23 @@ FOLLOW_ARR* create_follow_arr(int len)
     follow_array->len = len;                                                    // Atribui o tamanho à estrutura de dados
     follow_array->follow_arr = (FOLLOW_DREG*)calloc(len,sizeof(FOLLOW_DREG));   // Aloca a memória de um vetor com 'len' poisções que armazenam variáveis do tipo FOLLOW_DREG
     follow_array->follow_hreg = (FOLLOW_HREG*)calloc(1,sizeof(FOLLOW_HREG));
-    return follow_array;                                                        // Retorna o endereço de memória da região alocada
+    
+    for(int i = 0; i < len; i++)
+    {
+        follow_array->follow_arr[i].removido = '0';                                                             // Inicia o campo 'removido' como '0' por padrão
+        follow_array->follow_arr[i].idPessoaQueSegue = follow_array->follow_arr[i].idPessoaQueESeguida = -1;  // Inicia os campos relacionados à pessoa que segue/é seguida como -1 (valor null para inteiros)
+        follow_array->follow_arr[i].grauAmizade = '$';                                         // Inicia o campo 'grauAmziade' como '$' (null para char)
+        follow_array->follow_arr[i].dataInicioQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca 10 bytes para ambas as strings que representam os campos de data
+        follow_array->follow_arr[i].dataFimQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char));    // Ver 'DATE_LEN' EM include/follow.h para alterar o valor
 
+        for(int j = 0; j < DATE_LEN; j ++)                                      // Inicializa ambas as strings com o valo '$' em cada caracter -> Representa lixo de memória / null
+        {
+            follow_array->follow_arr[i].dataInicioQueSegue[j] = '$';
+            follow_array->follow_arr[i].dataFimQueSegue[j] = '$';
+        }
+    }
+    
+    return follow_array;                                                        // Retorna o endereço de memória da região alocada
 }
 
 /*
@@ -110,9 +125,11 @@ void destroy_follow_array(FOLLOW_ARR* follow_array)
 {
     for(int i = 0; i < follow_array->len; i++)              // Libera a memória para cada um dos registros de dados presentes no vetor
     {
-        destroy_follow_dreg(&follow_array->follow_arr[i]);
+        free(follow_array->follow_arr[i].dataInicioQueSegue);
+        free(follow_array->follow_arr[i].dataFimQueSegue);
     }
     free(follow_array->follow_arr);                         // Libera a memória do vetor em si
+    free(follow_array->follow_hreg);
     free(follow_array);
 }
 
@@ -210,6 +227,7 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
         fwrite(&f_dregvec[i].grauAmizade,1,1,follow_file);              // Escreve o campo 'grauAmizade' (1 byte)
 
         i++;                                                            // Incrementa a posição do vetor
+        file_pos = file_pos + 30;
     }
 }
 
@@ -439,4 +457,68 @@ void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa)
     {
         printf_fdreg(&match_f_arr->follow_arr[i]);              // Exibe cada registro correspondente de maneira formatada;
     }
+}
+/*
+    Recebe o arquivo csv com as informações sobre as relações entre seguidores e passa para memória
+    primária o seu conteúdo em formato de array de registros follow
+
+    params:
+        FILE* follow_csv => arquivo .csv já aberto
+    
+    return:
+        FOLLOW_ARR* => array de registros follow
+*/
+FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
+{
+    if(follow_csv == NULL)
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    
+    char str_in[100];
+    int len = 0;
+    
+    fgets(str_in, 100, follow_csv); //Pula o cabeçalho
+
+    while (fgets(str_in, 100, follow_csv) != NULL)  //Pega quantos registros o arquivo csv possui
+    {
+        len++;
+    }
+
+    fseek(follow_csv, 0, SEEK_SET);
+
+    FOLLOW_ARR* follow_arr = create_follow_arr(len);    //Cria o array de follow
+    
+    fgets(str_in, 100, follow_csv); //Pula o cabeçalho
+
+    for(int i = 0; i < len; i++)
+    {
+        fgets(str_in, 100, follow_csv);
+        char** fields = strip_by_delim(str_in, ',');
+
+        //Passa pro array campo a campo
+
+        follow_arr->follow_arr[i].idPessoaQueSegue = atoi(fields[1]);
+        follow_arr->follow_arr[i].idPessoaQueESeguida = atoi(fields[2]);
+        
+        strcpy(follow_arr->follow_arr[i].dataInicioQueSegue, fields[3]);
+
+        if(fields[4][0] != '\0')    //Testa se a dataFimQueSegue é nula
+        {
+            strcpy(follow_arr->follow_arr[i].dataFimQueSegue, fields[4]);
+        }
+
+        if(fields[5][0] != '\0')    //Testa se o grauAmizade é nulo
+        {
+            follow_arr->follow_arr[i].grauAmizade = fields[5][0];
+        }
+
+        destroy_strip_matrix(fields);
+    }
+    
+    follow_arr->follow_hreg->proxRRN = 9 + 30*len;
+    follow_arr->follow_hreg->qtdPessoas = len;
+
+    return follow_arr;
 }

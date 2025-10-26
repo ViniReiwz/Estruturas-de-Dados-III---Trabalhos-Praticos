@@ -716,9 +716,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
     fseek(data_file, 5, SEEK_SET);
     int num_removed;                        // Le do cabeçalho o número de pessoas
     fread(&num_removed, 4, 1, data_file);
-
-    INDEX_ARR* idx_array;  
-
+  
     fseek(data_file, 9, SEEK_SET);  // Posição do final byte no cabeçalho
     long final_byte;
     fread(&final_byte, 8, 1, data_file);
@@ -733,24 +731,42 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
         char** second_strip = strip_by_delim(first_strip[2], ' ',0); //Separa a string por ' '
 
         char* search[2];
-        search[0] = first_strip[1];
-        remove_everychar_until_space(search[0]);    //Campo a ser buscado sem o número da busca
-        search[1] = second_strip[1];
-        remove_quotes(search[1]);   //Valor do campo sem aspas
-
         char* update[2];
-        update[0] = second_strip[2];    //Campo a ser alterado
-        update[1] = first_strip[3];
-        remove_quotes(update[1]);
-        end_string_on_mark(update[1], "\n");
-        end_string_on_mark(update[1], "\r");    // Valor do campo a ser alterado sem aspas
+
+        if(atoi(second_strip[0]) > 2)   //Caso tenha espaços no valor do primeiro campo
+        {
+            destroy_strip_matrix(second_strip);
+            second_strip = strip_by_delim(first_strip[2], 34);    //Separa por aspas, pois é string
+            
+            search[0] = first_strip[1];
+            remove_everychar_until_space(search[0]);    // Campo a ser buscado sem o número do busca
+            search[1] = second_strip[2];    // second_strip[1] é vazia, não hà caracteres antes das aspas
+
+            update[0] = second_strip[3];    
+            remove_everychar_until_space(update[0]);    //retira o espaço entre o valor de busca e o campo a ser atualizado 
+            update[1] = first_strip[3];
+            remove_quotes(update[1]);
+            end_string_on_mark(update[1], "\n");
+            end_string_on_mark(update[1], "\r");
+        }
+        else
+        {   
+            search[0] = first_strip[1];
+            remove_everychar_until_space(search[0]);    //Campo a ser buscado sem o número da busca
+            search[1] = second_strip[1];
+            remove_quotes(search[1]);   //Valor do campo sem aspas
+
+            update[0] = second_strip[2];    //Campo a ser alterado
+            update[1] = first_strip[3];
+            remove_quotes(update[1]);
+            end_string_on_mark(update[1], "\n");
+            end_string_on_mark(update[1], "\r");    // Valor do campo a ser alterado sem aspas
+        }
 
         long current_byte = DF_HEAD_REG_LEN;
-        long bytes_increased = 0;
 
-        // Como alterar o final byte atrapalharia na lógica da busca, o incremento é feito
-        // apenas no final, e é guardado quantos bytes o arquivo foi incrementado
-
+        INDEX_ARR* idx_array = NULL;
+        
         while (current_byte < final_byte)
         {
             current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
@@ -805,14 +821,14 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     reg->nomePessoa = (char *)calloc(len, 1);
                     strcpy(reg->nomePessoa, update[1]);
 
-                    push_reg_to_memory(final_byte + bytes_increased, data_file, reg); //Escreve no arquivo
+                    push_reg_to_memory(final_byte, data_file, reg); //Escreve no arquivo
                     
                     // A pessoa com esse ID tem seu byte_offset atualizado no indice
                     open_and_pull_index(&index_file, &idx_array, index_filename);
                     int pos = index_binary_search(idx_array, reg->idPessoa);
-                    idx_array->idx_arr[pos].byteOffset = final_byte + bytes_increased;
+                    idx_array->idx_arr[pos].byteOffset = final_byte;
 
-                    bytes_increased = bytes_increased + reg->tamReg;
+                    final_byte = final_byte + reg->tamReg;
                 }
                 else
                 {
@@ -847,12 +863,12 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     reg->nomeUsuario = (char *)calloc(len, 1);
                     strcpy(reg->nomeUsuario, update[1]);
 
-                    push_reg_to_memory(final_byte + bytes_increased, data_file, reg);
+                    push_reg_to_memory(final_byte, data_file, reg);
 
                     open_and_pull_index(&index_file, &idx_array, index_filename);
                     int pos = index_binary_search(idx_array, reg->idPessoa);
-                    idx_array->idx_arr[pos].byteOffset = final_byte + bytes_increased;
-                    bytes_increased = bytes_increased + reg->tamReg;
+                    idx_array->idx_arr[pos].byteOffset = final_byte;
+                    final_byte = final_byte + reg->tamReg;
                 }
                 else
                 {
@@ -878,16 +894,18 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
             current_byte = next_byte;
         }
         
-        final_byte = final_byte + bytes_increased;
         destroy_strip_matrix(first_strip);
         destroy_strip_matrix(second_strip);
+
+        if(idx_array != NULL)
+        {
+            write_on_index_file(index_file, idx_array);
+            destroy_index_arr(idx_array);
+        }
     }
 
     if(index_file != NULL)
     {
-        write_on_index_file(index_file, idx_array);   
-        destroy_index_arr(idx_array);
-
         update_file_status(index_file, '1'); //atualiza o status do arquivo para consistente
         fclose(index_file);
     }
@@ -902,6 +920,53 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
     binarioNaTela(data_filename);
     binarioNaTela(index_filename);
 }
+
+/*
+    Lê os dados de um arquivo fonte, grava num arquivo de dados "follow file"
+
+    params:
+        const char* csv_filename => Nome do arquivo fonte dos dados (já existente)
+        const char* follow_filename => Nome do arquivo binário gerado
+
+    return:
+        void
+*/
+
+void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
+{
+    char* csv_filepath = get_file_path(csv_filename);
+    FILE* csv_file = fopen(csv_filepath, "r");
+    free(csv_filepath);
+    
+    if(csv_file == NULL)
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    FOLLOW_ARR* follow_arr = load_follow_csv_into_array(csv_file);
+
+    fclose(csv_file);
+
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath, "wb");
+    free(follow_filepath);
+
+    if(follow_file == NULL)
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    
+    write_on_follow_file(follow_file, follow_arr);
+    update_file_status(follow_file, '1');
+
+    destroy_follow_array(follow_arr);
+    fclose(follow_file);
+
+    binarioNaTela(follow_filename);
+}
+
 
 /*
     Lê do arquivo 'segue' e ordena seus registros de forma crescente, seguindo a hierarquia:

@@ -134,6 +134,19 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
 void ORDER_BY(const char* src_filename, const char* ord_dest_filename);
 
 /*
+    Lê os dados de um arquivo fonte, grava num arquivo de dados "follow file"
+
+    params:
+        const char* csv_filename => Nome do arquivo fonte dos dados (já existente)
+        const char* follow_filename => Nome do arquivo binário gerado
+
+    return:
+        void
+*/
+void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename);
+
+
+/*
     Implementa a funcionalidade SELECT_FROM_JOIN_ON -> Imprime todos os registros do arquivo follow relacionados
     às pessoas com 'idPessoa' no arquivo do tipo 'pessoa' igual à 'idPessoaQueSegue' no arquivo do tio 'segue'
 
