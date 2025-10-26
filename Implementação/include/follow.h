@@ -18,28 +18,28 @@
 typedef struct _follow_hreg // Registro de cabeçalho do arquivo 'segue'
 {
     int qtdPessoas;         // Campo 'qtdPessoas' que representam a quantidade de registros do arquivo de dados
-    int proxRRN;
+    int proxRRN;            // Campo 'proxRRN' que indica qual o próimo registro disponível para a escrita
 
 }FOLLOW_HREG;
 
 
-typedef struct _follow_dreg
+typedef struct _follow_dreg     // Registro de dados do arquivo do tipo 'segue'
 {
-    char removido;
-    int idPessoaQueSegue;
-    int idPessoaQueESeguida;
-    char* dataInicioQueSegue;
-    char* dataFimQueSegue;
-    char grauAmizade;
+    char removido;              // Campo 'removido', indica remoçaõ lógica ou não do registro
+    int idPessoaQueSegue;       // Campo 'idPessoaQueSegue', indentifica o id da pessoa que segue outra pessoa
+    int idPessoaQueESeguida;    // Campo 'idPessoaQueESeguida' identifica o id da pessoa seguida
+    char* dataInicioQueSegue;   // Campo 'dataInicioQueSegue', data em que começou a seguir a referida pessoa
+    char* dataFimQueSegue;      // Campo 'dataFimQueSegue', data em que  parou de seguir a referida pessoa
+    char grauAmizade;           // Campo 'grauAmizade', indica a justificativa de seguir a pessoa
 
 }FOLLOW_DREG;
 
-typedef struct _follow_dreg_array
+typedef struct _follow_dreg_array   // Vetor contendo registros de dados do arquivo do tipo 'segue'
 {
 
-    int len;
-    FOLLOW_HREG* follow_hreg;
-    FOLLOW_DREG* follow_arr;
+    int len;                        // Tamanho do vetor (n° de registros)
+    FOLLOW_HREG* follow_hreg;       // Registro de cabeçalho
+    FOLLOW_DREG* follow_arr;        // Vetor para registros de dados
 
 }FOLLOW_ARR;
 

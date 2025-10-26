@@ -736,7 +736,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
         if(atoi(second_strip[0]) > 2)   //Caso tenha espaços no valor do primeiro campo
         {
             destroy_strip_matrix(second_strip);
-            second_strip = strip_by_delim(first_strip[2], 34);    //Separa por aspas, pois é string
+            second_strip = strip_by_delim(first_strip[2], 34,0);    //Separa por aspas, pois é string
             
             search[0] = first_strip[1];
             remove_everychar_until_space(search[0]);    // Campo a ser buscado sem o número do busca

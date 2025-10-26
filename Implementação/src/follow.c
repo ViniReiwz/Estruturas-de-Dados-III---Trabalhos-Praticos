@@ -458,6 +458,7 @@ void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa)
         printf_fdreg(&match_f_arr->follow_arr[i]);              // Exibe cada registro correspondente de maneira formatada;
     }
 }
+
 /*
     Recebe o arquivo csv com as informações sobre as relações entre seguidores e passa para memória
     primária o seu conteúdo em formato de array de registros follow
@@ -495,7 +496,7 @@ FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
     for(int i = 0; i < len; i++)
     {
         fgets(str_in, 100, follow_csv);
-        char** fields = strip_by_delim(str_in, ',');
+        char** fields = strip_by_delim(str_in, ',',0);
 
         //Passa pro array campo a campo
 
