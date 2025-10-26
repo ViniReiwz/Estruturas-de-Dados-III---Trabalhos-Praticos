@@ -142,6 +142,22 @@ int main()
             
             break;
         }
+    case 8:
+        {
+            if(atoi(args[0]) < 3)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                CREATE_FOLLOW_TABLE(args[2],args[3]);
+            }
+            
+            break;
+        }
         
     default:
         {   

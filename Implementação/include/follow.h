@@ -131,4 +131,16 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr);
 
 void ordenate_follow_dreg(FOLLOW_ARR* f_arr);
 
+/*
+    Recebe o arquivo csv com as informações sobre as relações entre seguidores e passa para memória
+    primária o seu conteúdo em formato de array de registros follow
+
+    params:
+        FILE* follow_csv => arquivo .csv já aberto
+    
+    return:
+        FOLLOW_ARR* => array de registros follow
+*/
+FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv);
+
 #endif

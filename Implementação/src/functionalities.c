@@ -932,6 +932,51 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
     binarioNaTela(index_filename);
 }
 
+/*
+    Lê os dados de um arquivo fonte, grava num arquivo de dados "follow file"
+
+    params:
+        const char* csv_filename => Nome do arquivo fonte dos dados (já existente)
+        const char* follow_filename => Nome do arquivo binário gerado
+
+    return:
+        void
+*/
+
+void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
+{
+    char* csv_filepath = get_file_path(csv_filename);
+    FILE* csv_file = fopen(csv_filepath, "r");
+    free(csv_filepath);
+    
+    if(csv_file == NULL)
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+
+    FOLLOW_ARR* follow_arr = load_follow_csv_into_array(csv_file);
+
+    fclose(csv_file);
+
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath, "wb");
+    free(follow_filepath);
+
+    if(follow_file == NULL)
+    {
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    
+    write_on_follow_file(follow_file, follow_arr);
+
+    destroy_follow_array(follow_arr);
+    fclose(follow_file);
+
+    binarioNaTela(follow_filename);
+}
+
 void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
 {
     char* src_filepath = get_file_path(src_filename);
