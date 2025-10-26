@@ -970,6 +970,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     }
     
     write_on_follow_file(follow_file, follow_arr);
+    update_file_status(follow_file, '1');
 
     destroy_follow_array(follow_arr);
     fclose(follow_file);
