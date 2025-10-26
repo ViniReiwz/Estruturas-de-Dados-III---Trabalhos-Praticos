@@ -22,7 +22,7 @@
 void end_string_on_mark(char* str, const char* mark)
 {
     int rm = strcspn(str, mark);    // Encontra a posição da primeira ocorrência do marcador e a guarda em 'rm'
-    str[rm] = '\0';                     // Substitui o caracter por '\0'
+    str[rm] = '\0';                 // Substitui o caracter por '\0'
 }
 
 /*
@@ -31,12 +31,13 @@ void end_string_on_mark(char* str, const char* mark)
     params:
         const char unstriped_str[] => String estática que contém as sub-strings separadas por 'delim'
         const char delim => Delimitador de sub-strings
+        const int stop_on_first => Variável que indica se deve parar na primeira ocorrência do delimitador
 
 
     return:
     char** args => Retorna uma "matriz de strings", onde cada posição args[i] contém o conteúdo da string separada pelo espaço
 */
-char** strip_by_delim(const char unstriped_str[], const char delim)
+char** strip_by_delim(const char unstriped_str[], const char delim,const int stop_on_first)
 {   
     int len = strlen(unstriped_str) + 1;                // Atribui o tamanho da string original à 'len'
     char **args = (char**)calloc(len,sizeof(char*));    // Aloca memória suficiente para a matri de strings
@@ -48,17 +49,19 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
     args[0] = (char*)calloc(4,sizeof(char));            // Aloca 4 bytes (tamanho de inteiro) para guardar o número de strings
     
     int idx = 0;                                        // Indíce auxiliar
+
+    char aux_delim = delim;                             // Variável auxiliar que recebe 'delim' mas pode ser alterada (Caso stop_onf_first == 1)
     
     for(int i = 0; i < len; i ++)                       // Loop para percorrer toda a string original (unstriped)
     {
-        if(unstriped_str[i] != '\0' && unstriped_str[i] != '\n' && unstriped_str[i] != delim)   // Verifica se encontrou algum destes demarcadores de 'fim da string', incluindo o delimitador
+        if(unstriped_str[i] != '\0' && unstriped_str[i] != '\n' && unstriped_str[i] != aux_delim)   // Verifica se encontrou algum destes demarcadores de 'fim da string', incluindo o delimitador
         {
             aux[idx] = unstriped_str[i];                // Enquanto não encontrar, copia caracter à caracter
             idx++;                                      // Incrementa o indíce auxiliar
         }
 
         else                                            // Se encontrar:
-        {
+        {   
             args[mpos] = (char*)calloc(strlen(aux) + 1,sizeof(char));   // Aloca na posição mpos o sufuciente para receber a string separada
             
             strcpy(args[mpos],aux);                     // Copia a string
@@ -72,6 +75,8 @@ char** strip_by_delim(const char unstriped_str[], const char delim)
             idx = 0;                                    // Reseta o índice auxiliar
             n_str ++;                                   // Incrementa o número de strings separadas
         }
+
+        if(n_str == 1 && stop_on_first){aux_delim = '\0';}  // Caso queira separar apenas na primeira ocorrência do delimitador, e depois ler até o final, coloca o delim como '\0'
         
     }
     args[0][0] = (n_str) + '0';                         // Transforma em char o valor de n_str e atribui à posição 0,0 da matriz
@@ -306,7 +311,7 @@ char* reverse_date_string(char* date)
 {
     char* reversed_date = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca memória para a string revertida
 
-    char** date_matrix = strip_by_delim(date,'/');                  // Usa strip_by_delim para separar em dia, mes e ano
+    char** date_matrix = strip_by_delim(date,'/',0);                  // Usa strip_by_delim para separar em dia, mes e ano
     int d = atoi(date_matrix[1]);
     int m = atoi(date_matrix[2]);                                   // Atribui à uma variável do tipo int
     int a = atoi(date_matrix[3]);
@@ -326,17 +331,17 @@ char* reverse_date_string(char* date)
 
 char** read_for_search()
 {
-    char str_in[50];          // Interage com usuário, pegando uma string do tipo
-    fgets(str_in, 50, stdin); //"n tipoCampo=Valor"
-    printf("%s",str_in);
-    char **number_and_type = strip_by_delim(str_in, ' ');           // separa o tipo do número
-    printf("number and type == %s%s",number_and_type[1],number_and_type[2]);
-    char **type_and_value = strip_by_delim(number_and_type[1], '=');        // separa o tipo e valor
+    char str[50];
+    fgets(str,50,stdin);
 
-    remove_quotes(type_and_value[2]); // remove as aspas do valor
+    char** num_and_field = strip_by_delim(str,' ',1);
+    if(DEBUG){printf("num == %s --- field == %s\n",num_and_field[1],num_and_field[2]);}
 
-    end_string_on_mark(type_and_value[2], "\n"); // retira o '\n' e o '\r' das strings
-    end_string_on_mark(type_and_value[2], "\r"); // lidas
+    char** type_and_val = strip_by_delim(num_and_field[2],'=',0);
+    if(DEBUG){printf("type == %s --- val == %s\n",type_and_val[1],type_and_val[2]);}
 
-    return type_and_value;
+    destroy_strip_matrix(num_and_field);
+
+    return type_and_val;
+
 }

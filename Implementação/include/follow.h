@@ -148,4 +148,19 @@ int compare_follow_dreg(const void* a, const void* b);
 */
 void ordenate_follow_dreg(FOLLOW_ARR* f_arr);
 
+
+/*
+    Exibe todos os registros do arquivo de dados do tipo 'segueOrdenado' que satisfazem 'idPessoaqueSegue' == 'idPessoa'
+
+    params:
+        FOLLOW_ARR* f_arr => Arquivo do tipo 'segueOrdenado' em memória primária
+        int idPessoa => Valor a ser usado como parâmetro na busca
+    
+    return:
+        void
+*/
+void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa);
+
+
+
 #endif

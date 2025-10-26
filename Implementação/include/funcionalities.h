@@ -120,6 +120,32 @@ void INSERT_INTO(char* data_filename, char *index_filename, int insert_number);
 
 void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_number);
 
+/*
+    Lê do arquivo 'segue' e ordena seus registros de forma crescente, seguindo a hierarquia:
+        idPessoaQueSegue -> idPessoaQueESeguida -> dataInicioQueSegue -> dataFimQueSegue
+    
+    params:
+        const char* src_filename => Nome do arquivo que deseja-se ordenar os registros;
+        const char* ord_dest_filename => Nome do arquivo que receberá os registros ordenados;
+    
+    return:
+        void.
+*/
 void ORDER_BY(const char* src_filename, const char* ord_dest_filename);
+
+/*
+    Implementa a funcionalidade SELECT_FROM_JOIN_ON -> Imprime todos os registros do arquivo follow relacionados
+    às pessoas com 'idPessoa' no arquivo do tipo 'pessoa' igual à 'idPessoaQueSegue' no arquivo do tio 'segue'
+
+    params:
+        const char* data_filename => Nome do arquivo do tipo 'pessoa'
+        const char* index_filename => Nome do arquivo de índice
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+        const int search_number => Núemro de buscas a serem feitas no arquivo do tipo 'pessoa'
+
+    return:
+        void;
+*/
+void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, const char* follow_filename, const int search_number);
 
 #endif

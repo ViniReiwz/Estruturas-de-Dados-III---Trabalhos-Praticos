@@ -17,7 +17,7 @@ int main()
     strcpy(func_str,"");                    // Inicializa como uma string vazia
     fgets(func_str,OPT_LEN,stdin);          // Lê as entradas do teclado, todas de uma vez 
 
-    char **args = strip_by_delim(func_str,' '); // Variável que recebe os argumentos separados
+    char **args = strip_by_delim(func_str,' ',0); // Variável que recebe os argumentos separados
 
     int n_args = atoi(args[0]);             // Pega o número de argumentos passados ao programa
 
@@ -161,9 +161,6 @@ int main()
         
     default:
         {   
-            char** type_and_val = read_for_search();
-            printf("type == %s",type_and_val[1]);
-            printf("val == %s",type_and_val[2]);
             break;
         }
     }

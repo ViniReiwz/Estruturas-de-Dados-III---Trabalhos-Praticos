@@ -304,15 +304,139 @@ void printf_fdreg(FOLLOW_DREG* f_dreg)
         }
     }
 
-    printf("Justificativa para seguir: %s\n\n",follow_why);             // Imprime a justificativa pra seguir e um caracter de 'nova linha'
+    printf("Justificativa para seguir: %s\n",follow_why);                   // Imprime a justificativa pra seguir e um caracter de 'nova linha'
+
+    printf("Começou a seguir em: %s\n",f_dreg->dataInicioQueSegue);         // Imprime a data em que começou a seguir
+    printf("Parou de seguir em: %s\n\n",f_dreg->dataFimQueSegue);           // Imprime a data em que deixou de seguir
 }
 
-FOLLOW_DREG* WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa, int curr_pos)
-{   
-    FOLLOW_DREG* f_dregvec = f_arr->follow_arr;
-    for(int i = curr_pos; i < f_arr->len; i++)
+/*
+    Encontra a primeira ocorrẽncia de idPessoaQueSegue no arquivo do tipo 'segueOrdenado', através de busca binária
+
+    params:
+        FOLLOW_DREG* f_dregvec => Vetor com registros do arquivo do tipo 'segue' a serem verificados
+        int len => Tamanho do referido vetor
+        int idPessoaQueSegue => Valor a ser buscado
+    
+    return:
+        int occur => Indíce da primeira ocorrência
+*/
+int f_first_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
+{
+    int start = 0; int end = len - 1;                                       // Começa no indíce 0 e termina no índice len-1
+    int ocurr = -1;                                                         // Valor 'nulo' para a ocorrência
+
+    while (start<=end)                                                      // Atua enquanto os indíces não forem coincidentes
     {
-        if(f_dregvec[i].idPessoaQueSegue == idPessoa){return &f_dregvec[i];}
+        int half = (end - start)/2;                                         // Divide o vetor na metade (busca binária)
+        if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)            // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim e com o começo, visando encontrar a primeira aparoçaõ do 'idPessoaQueSegue'
+        {
+            ocurr = half;                                                   // Valor do índice de ocorrência == half
+            end = half - 1;                                                 // Aproxima end de start
+        }
+
+        else if(f_dregcev[half].idPessoaQueSegue < idPessoaQueSegue)        // Caso o valor atual seja menor que o desejado, pegua a metade à direita do vetor
+        {
+            start = half + 1;
+        }
+
+        else if(f_dregcev[half].idPessoaQueSegue > idPessoaQueSegue)        // Caso o vaor atual seja maior que o desejado , pega a metade à esquerda do vetor
+        {
+            end = half - 1;
+        }
     }
-    return NULL;
+
+    return ocurr;                                                           // Retorna o indíce com a primeira ocorrência do valor
+}
+
+/*
+    Encontra a última ocorrẽncia de idPessoaQueSegue no arquivo do tipo 'segueOrdenado', através de busca binária
+
+    params:
+        FOLLOW_DREG* f_dregvec => Vetor com registros do arquivo do tipo 'segue' a serem verificados
+        int len => Tamanho do referido vetor
+        int idPessoaQueSegue => Valor a ser buscado
+    
+    return:
+        int occur => Indíce da última ocorrência
+*/
+int f_last_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
+{
+    int start = 0; int end = len - 1;                                   // Começa no indíce 0 e termina no índice len-1
+    int ocurr = -1;                                                     // Valor 'nulo' para a ocorrência
+
+    while (start<=end)                                                  // Atua enquanto os indíces não forem coincidentes
+    {
+        int half = (end - start)/2;                                     // Divide o vetor na metade (busca binária)
+        if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)        // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim com o começo, visando encontrar a primeira apariçaõ do 'idPessoaQueSegue'
+        {
+            ocurr = half;                                               // Valor do índice de ocorrência == half
+            start = half + 1;                                           // Aproxima start de end  
+        }
+
+        else if(f_dregcev[half].idPessoaQueSegue < idPessoaQueSegue)    // Caso o valor atual seja menor que o desejado, pegua a metade à direita do vetor
+        {
+            start = half + 1;
+        }
+
+        else if(f_dregcev[half].idPessoaQueSegue > idPessoaQueSegue)    // Caso o valor atual seja maior que o desejado, pegua a metade à esquerda do vetor
+        {
+            end = half - 1;
+        }
+    }
+
+    return ocurr;                                                       // Retorna o índice da ultima ocorrência
+}
+
+/*
+    Faz uma busca binária e retorna todos os registros que possuem 'idPessoaQueSegue'
+
+    params:
+        FOLLOW_ARR* f_arr => Arquivo do tipo 'segueOrdenado' em memória primária
+        int idPessoaQueSegue => Valor a ser usado como condição na busca
+    
+    return:
+        FOLLOW_ARR* found_f_arr => Vetor de registros que satsifazem as condições
+*/
+FOLLOW_ARR* follow_match_reg(FOLLOW_ARR* f_arr, int idPessoaQueSegue)
+{
+    int first_index = f_first_ocurr(f_arr->follow_arr,f_arr->len,idPessoaQueSegue); // Encontra o indíce da primeira e ultima ocorrência do valor 'idPessoaQueSegue'
+    int last_index = f_last_ocurr(f_arr->follow_arr,f_arr->len,idPessoaQueSegue);
+
+    if(first_index == -1 || last_index == -1)                                       // Caso nãoe encontre, retorna NULL
+    {
+        return NULL;
+    }
+    int idx = 0;                                                                    // Variável auxiliar para copiar os elementos do vetor principal
+    FOLLOW_ARR* found_f_arr = create_follow_arr(last_index - first_index + 1);
+    for(int i = first_index; i <= last_index; i++)                                  // Atua entre os indíces encontrados
+    {
+        found_f_arr->follow_arr[idx] = f_arr->follow_arr[i];
+        idx++;
+    }
+
+    return found_f_arr;                                                             // Retorna o vetor com os registros correspondentes à busca
+}
+
+/*
+    Exibe todos os registros do arquivo de dados do tipo 'segueOrdenado' que satisfazem 'idPessoaqueSegue' == 'idPessoa'
+
+    params:
+        FOLLOW_ARR* f_arr => Arquivo do tipo 'segueOrdenado' em memória primária
+        int idPessoa => Valor a ser usado como parâmetro na busca
+    
+    return:
+        void
+*/
+void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa)
+{
+    FOLLOW_ARR* match_f_arr = follow_match_reg(f_arr,idPessoa); // Gera o vetor com todos os registros que satisfazem a condição de busca
+
+    if(match_f_arr!=NULL)                                       // Caso for NULL, exibe a mensagem de erro e sai da função
+    {printf("Registro inexistente. \n"); return;}
+
+    for(int i = 0; i < match_f_arr->len; i++)                   // Atua por todo o vetor de registros
+    {
+        printf_fdreg(&match_f_arr->follow_arr[i]);              // Exibe cada registro correspondente de maneira formatada;
+    }
 }
