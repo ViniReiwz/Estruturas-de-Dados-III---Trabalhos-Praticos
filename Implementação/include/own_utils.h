@@ -23,13 +23,15 @@
     Recebe uma string como parâmetro e a separa de acordo com os delimitadores especificados.
 
     params:
-        char unstriped_str[] => String estática que contém as sub-strings separadas por 'delim';
-        char delim => Delimitador de sub-strings.
+        char unstriped_str[] => String estática que contém as sub-strings separadas por 'delim'
+        char delim => Delimitador de sub-strings
+        const int stop_on_first => Variável que indica se deve parar na primeira ocorrência do delimitador
+
 
     return:
         char** args => Retorna uma "matriz de strings", onde cada posição args[i] contém o conteúdo da string separada pelo espaço.
 */
-char** strip_by_delim(const char unstriped_str[],const char delim);
+char** strip_by_delim(const char unstriped_str[],const char delim,int stop_on_first);
 
 /*
     Libera a memória da matriz com as strings separadas por algum delimitador
@@ -48,6 +50,7 @@ void destroy_strip_matrix(char** strip_m);
     params:
         char* str => String a ser terminada;
         char mark => Marcador a ser substituído por '\0'
+        
     
     return:
         void
@@ -156,6 +159,8 @@ void remove_everychar_until_space(char *str);
         char* reversed_date => String já invertida.
 */
 char* reverse_date_string(char* date);
+
+char** read_for_search();
 
 
 #endif

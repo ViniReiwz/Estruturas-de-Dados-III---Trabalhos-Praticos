@@ -203,7 +203,7 @@ void SELECT_FROM_TABLE(const char *data_filename)
 
 */
 
-long WHERE(FILE *data_file, FILE *index_file, const char* index_filename, char *type, char *value, long current_byte, long final_byte)
+long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename, char *type, char *value, long current_byte, long final_byte)
 {
     fseek(data_file, current_byte, SEEK_SET);   //Coloca o cursor do arquivo no byte atual
 
@@ -384,11 +384,8 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
 
     for (int i = 1; i <= search_number; i++)
     {
-        char str_in[50];          // Interage com usuário, pegando uma string do tipo
-        fgets(str_in, 50, stdin); //"n tipoCampo=Valor"
 
-        char **type_and_value = strip_by_delim(str_in, '=');         // separa o tipo e valor
-        char **number_type = strip_by_delim(type_and_value[1], ' '); // separa o tipo do número
+        char** type_and_value = read_for_search();
 
         remove_quotes(type_and_value[2]); // remove as aspas do valor
 
@@ -407,8 +404,8 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
         while(1)
         {
             // Procura o primeiro byte offset desejado depois do byte_atual
-            current_byte = WHERE(data_file, index_file, index_filename,
-                           number_type[2], type_and_value[2], current_byte, final_byte);
+            current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
+                           type_and_value[1], type_and_value[2], current_byte, final_byte);
             
             if(current_byte >= final_byte) //Caso o byte atual chegue no final para a busca
             {
@@ -426,7 +423,6 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
 
         // Desaloca memória
         destroy_strip_matrix(type_and_value);
-        destroy_strip_matrix(number_type);
     }
 
     fclose(data_file);
@@ -454,7 +450,7 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
 
 */
 
-void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_number)
+void DELETE_FROM_WHERE(char *data_filename, char *index_filename, int delete_number)
 {
     char *data_path = get_file_path(data_filename); // Pega o caminho do arquivo de dados e
     FILE *data_file = fopen(data_path, "r+b");       // abre-o para leitura e escrita
@@ -491,15 +487,9 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_nu
 
     for (int i = 1; i <= delete_number; i++)
     {
-        char str_in[50];          // Interage com usuário, pegando uma string do tipo
-        fgets(str_in, 50, stdin); //"n tipoCampo=Valor"
+        char** type_and_value = read_for_search();
 
-        char **type_and_value = strip_by_delim(str_in, '=');         // separa o tipo e valor
-        char **number_type = strip_by_delim(type_and_value[1], ' '); // separa o tipo do número
-
-        remove_quotes(type_and_value[2]); // remove as aspas do valor
-
-        end_string_on_mark(type_and_value[2], "\n"); // retira o '\n' e o '\r' das strings
+        end_string_on_mark(type_and_value[1], "\n"); // retira o '\n' e o '\r' das strings
         end_string_on_mark(type_and_value[2], "\r"); // lidas
 
         long final_byte;                     // Coloca o cursor de arquivos de dados no byte offset
@@ -512,8 +502,8 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_nu
         while(1)
         {
             // Procura o primeiro byte offset desejado depois do byte_atual
-            current_byte = WHERE(data_file, index_file, index_filename,
-                           number_type[2], type_and_value[2], current_byte, final_byte);
+            current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
+                           type_and_value[1], type_and_value[2], current_byte, final_byte);
             
             if(current_byte >= final_byte) //Caso o byte atual chegue no final para a busca
             {
@@ -540,7 +530,6 @@ void DELETE_FROM_WHERE (char *data_filename, char *index_filename, int delete_nu
 
         // Desaloca memória
         destroy_strip_matrix(type_and_value);
-        destroy_strip_matrix(number_type);
     }
 
     write_on_index_file(index_file, idx_array); // Reescreve o arquivo de indice;
@@ -616,7 +605,7 @@ void INSERT_INTO(char* data_filename, char *index_filename, int insert_number)
         char str_in[100];
         fgets(str_in, 100, stdin);
 
-        char** values = strip_by_delim(str_in, ',');
+        char** values = strip_by_delim(str_in, ',',0);
         for(int j = 1; j < 5; j++)
         {
             remove_everychar_until_space(values[j]);    //Retira o espaço de cada campo  e o número da pesquisa do primeiro campo
@@ -737,10 +726,10 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
         char str_in[100];
         fgets(str_in, 100, stdin);
 
-        char** first_strip = strip_by_delim(str_in, '=');   // Separa a string por '='
+        char** first_strip = strip_by_delim(str_in, '=',0);   // Separa a string por '='
         
-        char** second_strip = strip_by_delim(first_strip[2], ' '); //Separa a string por ' '
-        
+        char** second_strip = strip_by_delim(first_strip[2], ' ',0); //Separa a string por ' '
+
         char* search[2];
         char* update[2];
 
@@ -780,7 +769,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
         
         while (current_byte < final_byte)
         {
-            current_byte = WHERE(data_file, index_file, index_filename,
+            current_byte = WHERE_PESSOA(data_file, index_file, index_filename,
                                  search[0], search[1], current_byte, final_byte);
 
             if(current_byte >= final_byte)
@@ -978,49 +967,157 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     binarioNaTela(follow_filename);
 }
 
+
+/*
+    Lê do arquivo 'segue' e ordena seus registros de forma crescente, seguindo a hierarquia:
+        idPessoaQueSegue -> idPessoaQueESeguida -> dataInicioQueSegue -> dataFimQueSegue
+    
+    params:
+        const char* src_filename => Nome do arquivo que deseja-se ordenar os registros;
+        const char* ord_dest_filename => Nome do arquivo que receberá os registros ordenados;
+    
+    return:
+        void.
+*/
 void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
 {
-    char* src_filepath = get_file_path(src_filename);
+    char* src_filepath = get_file_path(src_filename);                       // Pega o caminho dos arquivos
     char* ord_dest_filepath = get_file_path(ord_dest_filename);
 
-    FILE* src_file = fopen(src_filepath,"rb");
+    FILE* src_file = fopen(src_filepath,"rb");                              // Abre para leitura o arquivo fonte
     if(src_file == NULL)
     {
         if(DEBUG)
         {
             printf("Arquivo %s inexistente\n",src_filepath);
         }
-        print_error();
+        print_error();                                                      // Exibe mensagem de erro e sai do programa caso não exista
         exit(EXIT_FAILURE);
     }
 
-    FILE* ord_dest_file = fopen(ord_dest_filepath,"wb");
+    FILE* ord_dest_file = fopen(ord_dest_filepath,"wb");                    // Abre o arquiv destino para escrita
     if(ord_dest_file == NULL)
     {
         if(DEBUG)
         {
             printf("Impossível de criar arquivo %s\n",ord_dest_filepath);
         }
-        print_error();
+        print_error();                                                      // Caso não seja criado, exibe mensagem de erro e encerra o programa
         exit(EXIT_FAILURE);
     }
 
-    update_file_status(ord_dest_file,'1');
+    update_file_status(ord_dest_file,'0');                                  // Atualiza o status do arquivo destino para '0' (inconsistente)
 
-    free(src_filepath);
+    free(src_filepath);                                                     // Libera o espaço da string do arquivo fonte
     
-    FOLLOW_ARR* f_arr = read_follow_file(src_file);
+    FOLLOW_ARR* f_arr = read_follow_file(src_file);                         // Lê do arquivo fonte e o coloca em memória primária
 
-    fclose(src_file);
+    fclose(src_file);                                                       // Fecha o arquivo fonte
     
-    ordenate_follow_dreg(f_arr);
+    ordenate_follow_dreg(f_arr);                                            // Ordena os registros do arquivo
 
-    write_on_follow_file(ord_dest_file,f_arr);
+    write_on_follow_file(ord_dest_file,f_arr);                              // Escreve os registros no arquivo de destino, já ordenados
 
-    update_file_status(ord_dest_file,'0');
-    fclose(ord_dest_file);
+    destroy_follow_array(f_arr);                                            // Libera o espaço alocado para os registros em memória primária
 
-    binarioNaTela(ord_dest_filepath);
-    free(ord_dest_filepath);
+    update_file_status(ord_dest_file,'1');                                  // Atualiza o status do arquivo de destino para '1' (consistente)                     
+    fclose(ord_dest_file);                                                  // Fecha o arquivo de destino
 
+    binarioNaTela(ord_dest_filepath);                                      
+    free(ord_dest_filepath);                                                // Usa binarioNaTela e libera a memória da string com o caminho do arquivo de destino
+
+}
+
+/*
+    Implementa a funcionalidade SELECT_FROM_JOIN_ON -> Imprime todos os registros do arquivo follow relacionados
+    às pessoas com 'idPessoa' no arquivo do tipo 'pessoa' igual à 'idPessoaQueSegue' no arquivo do tio 'segue'
+
+    params:
+        const char* data_filename => Nome do arquivo do tipo 'pessoa'
+        const char* index_filename => Nome do arquivo de índice
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+        const int search_number => Núemro de buscas a serem feitas no arquivo do tipo 'pessoa'
+
+    return:
+        void;
+*/
+void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, const char* follow_filename, const int search_number)
+{
+    char* data_filepath = get_file_path(data_filename);                     // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
+    FILE* data_file = fopen(data_filepath,"rb");
+    if(data_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    free(data_filepath);
+    
+    char* index_filepath = get_file_path(index_filename);
+    FILE* index_file = fopen(index_filepath,"rb");
+    if(index_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    free(index_filepath);
+
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath,"rb");
+    if(follow_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    free(follow_filepath);
+
+    long int final_byte = fseek(data_file,0,SEEK_END);                      // Variável que indica o offset final do aqruivo
+
+    FOLLOW_ARR* f_arr = read_follow_file(follow_file);                      // Carrega o arquivo do tipo 'segue' para memória primária
+
+    for(int i = 0; i < search_number; i++)                                  // Atua enquanto houverem busacas à ser feitas
+    {
+        char** type_and_value = read_for_search();                          // Lê a strign na forma 'n type=value'
+
+        remove_quotes(type_and_value[2]);                                   // Remove as aspas do valor, se houver
+
+        end_string_on_mark(type_and_value[2], "\n");                        // Retira o '\n' e o '\r' das strings lidas
+        end_string_on_mark(type_and_value[2], "\r");
+
+        long int curr_byte = fseek(data_file,0,SEEK_SET);                   // Variável auxiliar para percorrer todo o arquivo
+
+        int no_reg = 1;                                                     // Flag para saber sealgum registro fora encontrado
+
+        while (curr_byte < final_byte)                                      // Percorre todo o arquivo
+        {
+            curr_byte = WHERE_PESSOA(data_file,index_file,index_filename,type_and_value[1],type_and_value[2],curr_byte,final_byte); // Encontra o byte offset cujo registro do arquivo do tipo 'pessoa' satisfaz as condiçẽos da busca
+
+            DATA_DREG* d_dreg =  pull_reg_from_memory(curr_byte,data_file); // Carrega o referido registro para a memória primária
+
+            int size = SELECT(data_file,curr_byte,&no_reg);                 // Exibe o registro e calculo seu tamanho
+
+            if(!no_reg)                                                     // Executa somente se um registro fora encontrado
+            {
+                SELECT_WHERE_FOLLOW(f_arr,d_dreg->idPessoa);                // Exibe todos os registros do arquivo do tipo 'segue' cujo 'idPessoaQueSegue' é igual à 'idPessoa' do registro encontrado anteriormente
+            }
+
+            curr_byte += size;                                              // Incrementa o byte offset atual
+
+            destroy_data_dreg(d_dreg);                                      // Libear a memória do registro do arquivo 'pessoa'
+
+        }
+
+        if(no_reg){printf("Registro inexsitente.\n");}                      // Exibe a mensagem caso nenhum registro seja encontrado
+
+    }
+
+    destroy_follow_array(f_arr);                                            // Libera a memória do arquivo do tipo 'segue'
+
+    fclose(data_file);
+    fclose(index_file);
+    fclose(follow_file);
+
+    
 }

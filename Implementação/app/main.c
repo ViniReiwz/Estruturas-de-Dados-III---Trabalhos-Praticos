@@ -1,5 +1,5 @@
 /*
-                                TRABALHO PRÁTICO 1 - ESTRUTURA DE DADOS III
+                                TRABALHO PRÁTICO - ESTRUTURA DE DADOS III
                                 
                                 Pedro Avelar Machado                15497396
                                 Vinicius Reis Gonçalves             15491921
@@ -17,7 +17,7 @@ int main()
     strcpy(func_str,"");                    // Inicializa como uma string vazia
     fgets(func_str,OPT_LEN,stdin);          // Lê as entradas do teclado, todas de uma vez 
 
-    char **args = strip_by_delim(func_str,' '); // Variável que recebe os argumentos separados
+    char **args = strip_by_delim(func_str,' ',0); // Variável que recebe os argumentos separados
 
     int n_args = atoi(args[0]);             // Pega o número de argumentos passados ao programa
 
@@ -143,7 +143,7 @@ int main()
             break;
         }
     case 8:
-        {
+          {
             if(atoi(args[0]) < 3)
             {
                 if(DEBUG)
@@ -153,15 +153,30 @@ int main()
             }
             else
             {
+
                 CREATE_FOLLOW_TABLE(args[2],args[3]);
             }
             
             break;
+          }
+      case 9:
+        {
+          if(atoi(args[0]) < 3)
+          {
+            if(DEBUG)
+            {
+              printf("Poucos argumentos!!\n");
+            }
+          }
+          else
+          {
+            ORDER_BY(args[2],args[3])
+          }
+          break;
         }
         
     default:
         {   
-            reverse_date_string("20/12/2006") ;
             break;
         }
     }

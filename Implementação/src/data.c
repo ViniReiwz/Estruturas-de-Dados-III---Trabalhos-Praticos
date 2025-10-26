@@ -217,7 +217,7 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
 
     while (fgets(src_str,100,file) != NULL)                                         // Lê 100 bytes do arquivo (ou até '\n') enquanto não terminar
     {   
-        char** data = strip_by_delim(src_str,',');                                  // Separa as strings delimitadas por ','
+        char** data = strip_by_delim(src_str,',',0);                                  // Separa as strings delimitadas por ','
 
         int n_data = atoi(data[0]);                                                 // Vê o número final de strings
         if(n_data < 4)                                                              // Verifica se leu todos os dados (id,nome,idade e usuário)
