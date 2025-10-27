@@ -249,7 +249,7 @@ int index_binary_search(INDEX_ARR* idx_array, int id)
     {
         middle = left + (right - left) / 2; // calcula o meio
 
-        if (left == right || idx_array->idx_arr[middle].idPessoa == id) // caso as extremidades sejam iguais sai do while
+        if (right < left || left == right || idx_array->idx_arr[middle].idPessoa == id) // caso as extremidades sejam iguais sai do while
         {                                                               // ou caso o conteudo do meio seja igual ao id
             break;
         }
