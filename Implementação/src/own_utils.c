@@ -65,7 +65,7 @@ char** strip_by_delim(const char unstriped_str[], const char delim,const int sto
             args[mpos] = (char*)calloc(strlen(aux) + 1,sizeof(char));   // Aloca na posição mpos o sufuciente para receber a string separada
             
             strcpy(args[mpos],aux);                     // Copia a string
-            // printf("args[%i] ==> %s",mpos,args[mpos]);
+            
 
             end_string_on_mark(args[mpos],"\n");        // Substitui '\n' por '\0'
 
@@ -175,7 +175,8 @@ void print_index(INDEX_DREG idx)
         void.
 */
 void print_follow_dreg(FOLLOW_DREG flw_dreg)
-{
+{   
+
     puts("");
     printf("\n\'removido\' ==> %c\n",flw_dreg.removido);
     printf("\'idPessoaQueSegue\' ==> %i\n",flw_dreg.idPessoaQueSegue);

@@ -736,7 +736,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
         if(atoi(second_strip[0]) > 2)   //Caso tenha espaços no valor do primeiro campo
         {
             destroy_strip_matrix(second_strip);
-            second_strip = strip_by_delim(first_strip[2], 34);    //Separa por aspas, pois é string
+            second_strip = strip_by_delim(first_strip[2], 34,0);    //Separa por aspas, pois é string
             
             search[0] = first_strip[1];
             remove_everychar_until_space(search[0]);    // Campo a ser buscado sem o número do busca
@@ -959,6 +959,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     }
     
     write_on_follow_file(follow_file, follow_arr);
+
     update_file_status(follow_file, '1');
 
     destroy_follow_array(follow_arr);
@@ -1049,7 +1050,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(data_filepath);
     
@@ -1059,7 +1060,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(index_filepath);
 
@@ -1069,11 +1070,14 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(follow_filepath);
 
-    long int final_byte = fseek(data_file,0,SEEK_END);                      // Variável que indica o offset final do aqruivo
+    fseek(data_file,9,SEEK_SET);                                             // Move o ponteiro do arquivo para o campo 'proxByteOffset'
+
+    long int final_byte;
+    fread(&final_byte,8,1,data_file);                                       // Lê os 8 bytes que correspondem ao fim do arquivo
 
     FOLLOW_ARR* f_arr = read_follow_file(follow_file);                      // Carrega o arquivo do tipo 'segue' para memória primária
 
@@ -1085,8 +1089,8 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
         end_string_on_mark(type_and_value[2], "\n");                        // Retira o '\n' e o '\r' das strings lidas
         end_string_on_mark(type_and_value[2], "\r");
-
-        long int curr_byte = fseek(data_file,0,SEEK_SET);                   // Variável auxiliar para percorrer todo o arquivo
+        
+        long int curr_byte = DF_HEAD_REG_LEN;                               // Variável auxiliar para percorrer todo o arquivo, pula o registro de cabeçalho
 
         int no_reg = 1;                                                     // Flag para saber sealgum registro fora encontrado
 
@@ -1095,8 +1099,10 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
             curr_byte = WHERE_PESSOA(data_file,index_file,index_filename,type_and_value[1],type_and_value[2],curr_byte,final_byte); // Encontra o byte offset cujo registro do arquivo do tipo 'pessoa' satisfaz as condiçẽos da busca
 
             DATA_DREG* d_dreg =  pull_reg_from_memory(curr_byte,data_file); // Carrega o referido registro para a memória primária
+            
+            if(d_dreg->idPessoa == -1){break;}                              // Encerra o loop caso não encontre registro equivalente
 
-            int size = SELECT(data_file,curr_byte,&no_reg);                 // Exibe o registro e calculo seu tamanho
+            int size = SELECT(data_file,curr_byte,&no_reg);                 // Exibe o registro e calcula seu tamanho
 
             if(!no_reg)                                                     // Executa somente se um registro fora encontrado
             {
