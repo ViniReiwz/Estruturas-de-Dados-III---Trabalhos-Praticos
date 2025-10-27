@@ -290,6 +290,12 @@ int index_binary_search(INDEX_ARR* idx_array, int id)
 void remove_id_array(INDEX_ARR* idx_array, int id)
 {
     int pos = index_binary_search(idx_array, id);   // acha a posição desse ID no array
+    
+    if(pos == -1)
+    {
+        return;
+    }
+    
     int len = idx_array->len;
 
     for(int i = pos; i < len - 1; i++)  //Traz todos os registros a partir do ID uma posição
