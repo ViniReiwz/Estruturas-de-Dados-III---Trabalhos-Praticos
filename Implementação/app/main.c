@@ -174,6 +174,21 @@ int main()
           }
           break;
         }
+    
+    case 10:
+    {
+        if(atoi(args[0]) < 5)
+        {
+            if(DEBUG)
+            {
+                printf("Poucos argumentos!!\n");
+            }
+        }
+        else
+        {
+            SELECT_FROM_JOIN_ON(args[2],args[3],args[4],atoi(args[5]));
+        }
+    }
         
     default:
         {   
