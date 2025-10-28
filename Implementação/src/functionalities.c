@@ -845,7 +845,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                 
                 if(strcmp(update[1], "NULO") == 0)
                 {
-                    int old_size_name = reg->tamNomePessoa;
+                    int old_size_name = reg->tamReg - 16 - reg->tamNomeUsuario;
                     reg->tamNomePessoa = 0;
 
                     push_reg_to_memory(current_byte, data_file, reg);
@@ -883,6 +883,11 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                 {
                     int old_size_name = reg->tamReg - 16 - reg->tamNomeUsuario;
                     reg->tamNomePessoa = len;
+                    if(reg->nomePessoa != NULL)
+                    {
+                        free(reg->nomePessoa);
+                    }
+                    reg->nomePessoa = (char*)calloc(len, 1);
                     strcpy(reg->nomePessoa, update[1]);
 
                     push_reg_to_memory(current_byte, data_file, reg);
@@ -923,6 +928,11 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                 {
                     int old_size_name = reg->tamReg - 16 - reg->tamNomePessoa;
                     reg->tamNomeUsuario = len;
+                    if(reg->nomeUsuario != NULL)
+                    {
+                        free(reg->nomeUsuario);
+                    }
+                    reg->nomeUsuario = (char*)calloc(len, 1);
                     strcpy(reg->nomeUsuario, update[1]);
 
                     push_reg_to_memory(current_byte, data_file, reg);
