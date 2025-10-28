@@ -1166,7 +1166,11 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
             DATA_DREG* d_dreg =  pull_reg_from_memory(curr_byte,data_file); // Carrega o referido registro para a memória primária
             
-            if(d_dreg->idPessoa == -1){break;}                              // Encerra o loop caso não encontre registro equivalente
+            if(d_dreg->idPessoa == -1)                                      // Encerra o loop caso não encontre registro equivalente
+            {   
+                destroy_data_dreg(d_dreg);
+                break;
+            }
 
             int size = SELECT(data_file,curr_byte,&no_reg);                 // Exibe o registro e calcula seu tamanho
 

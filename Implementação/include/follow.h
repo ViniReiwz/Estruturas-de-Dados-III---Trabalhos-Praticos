@@ -39,7 +39,7 @@ typedef struct _follow_dreg_array   // Vetor contendo registros de dados do arqu
 
     int len;                        // Tamanho do vetor (n° de registros)
     FOLLOW_HREG* follow_hreg;       // Registro de cabeçalho
-    FOLLOW_DREG* follow_arr;        // Vetor para registros de dados
+    FOLLOW_DREG** follow_arr;       // Vetor de ponteiros para registros de dados
 
 }FOLLOW_ARR;
 

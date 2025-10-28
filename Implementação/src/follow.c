@@ -61,14 +61,14 @@ FOLLOW_ARR* create_follow_arr(int len)
 {
     FOLLOW_ARR* follow_array = (FOLLOW_ARR*)calloc(1,sizeof(FOLLOW_ARR));       // Aloca a memória para uma variável do tipo FOLLO_ARR
     follow_array->len = len;                                                    // Atribui o tamanho à estrutura de dados
-    follow_array->follow_arr = (FOLLOW_DREG*)calloc(len,sizeof(FOLLOW_DREG));   // Aloca a memória de um vetor com 'len' poisções que armazenam variáveis do tipo FOLLOW_DREG
+    follow_array->follow_arr = (FOLLOW_DREG**)calloc(len,sizeof(FOLLOW_DREG*));   // Aloca a memória de um vetor com 'len' poisções que armazenam variáveis do tipo FOLLOW_DREG
     follow_array->follow_hreg = (FOLLOW_HREG*)calloc(1,sizeof(FOLLOW_HREG));
     
-    for(int i = 0; i < len; i++)
+    for(int i = 0; i < len; i++)                                                // Inicializa os valores nulos como especificado na descrição do trabalho
     {
-        follow_array->follow_arr[i] = *create_follow_dreg();
+        follow_array->follow_arr[i] = create_follow_dreg();
     }
-    
+
     return follow_array;                                                        // Retorna o endereço de memória da região alocada
 }
 
@@ -115,8 +115,7 @@ void destroy_follow_array(FOLLOW_ARR* follow_array)
 {
     for(int i = 0; i < follow_array->len; i++)              // Libera a memória para cada um dos registros de dados presentes no vetor
     {
-        free(follow_array->follow_arr[i].dataInicioQueSegue);
-        free(follow_array->follow_arr[i].dataFimQueSegue);
+        destroy_follow_dreg(follow_array->follow_arr[i]);
     }
     free(follow_array->follow_arr);                         // Libera a memória do vetor em si
     free(follow_array->follow_hreg);
@@ -141,7 +140,7 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file)
 
     FOLLOW_ARR* f_arr = create_follow_arr(len);                             // Aloca o espaço necessária para guardar  arquivo em memóira primária
     FOLLOW_HREG* f_hreg = f_arr->follow_hreg;                               // f_hreg = f_arr->follow_hreg para simplificar a sintaxe
-    FOLLOW_DREG* f_dregvec = f_arr->follow_arr;                             // f_dregvec = f_arr->follow_arr para simplificação de sintaxe
+    FOLLOW_DREG** f_dregvec = f_arr->follow_arr;                             // f_dregvec = f_arr->follow_arr para simplificação de sintaxe
 
     f_hreg->qtdPessoas  = len;                                              // Guarda o campo 'qtdPessoas' na estrutura de dados
     fread(&f_hreg->proxRRN,4,1,follow_file);                                // Lê o próximo registro disponível para inserção e o guarda em memória primária
@@ -155,21 +154,21 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file)
         fread(&removido,1,1,follow_file);                                   // Verifica se o registro não foi removido
         if(removido == '0')                                                 // Caso não tenha sido removido, lê o registro completo
         {
-            f_dregvec[i].removido = removido;                               // Guarda o campo 'removido' (1 byte)
-            fread(&f_dregvec[i].idPessoaQueSegue,4,1,follow_file);          // Guarda o campo 'idPessoaQueSegue' (4 bytes)
-            fread(&f_dregvec[i].idPessoaQueESeguida,4,1,follow_file);       // Guarda o campo 'idPessoaQueESeguida' (4 bytes)
-            fread(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);       // Guarda o campo 'dataInicioQueSegue' (10 bytes)
-            fread(f_dregvec[i].dataFimQueSegue,10,1,follow_file);          // Guarda o campo 'dataFimQueSegue' (10 bytes)
-            fread(&f_dregvec[i].grauAmizade,1,1,follow_file);               // Guarda o campo 'grauAmizade' (1 byte)
+            f_dregvec[i]->removido = removido;                              // Guarda o campo 'removido' (1 byte)
+            fread(&f_dregvec[i]->idPessoaQueSegue,4,1,follow_file);         // Guarda o campo 'idPessoaQueSegue' (4 bytes)
+            fread(&f_dregvec[i]->idPessoaQueESeguida,4,1,follow_file);      // Guarda o campo 'idPessoaQueESeguida' (4 bytes)
+            fread(f_dregvec[i]->dataInicioQueSegue,10,1,follow_file);       // Guarda o campo 'dataInicioQueSegue' (10 bytes)
+            fread(f_dregvec[i]->dataFimQueSegue,10,1,follow_file);          // Guarda o campo 'dataFimQueSegue' (10 bytes)
+            fread(&f_dregvec[i]->grauAmizade,1,1,follow_file);              // Guarda o campo 'grauAmizade' (1 byte)
             
-            f_dregvec[i].dataInicioQueSegue[10] = '\0';
+            f_dregvec[i]->dataInicioQueSegue[10] = '\0';
 
 
-            f_dregvec[i].dataFimQueSegue[10] = '\0';
+            f_dregvec[i]->dataFimQueSegue[10] = '\0';
 
-            if(DEBUG)                                                       // Mensage de DEBUG que exibe o registro
+            if(DEBUG)                                                       // Mensagem de DEBUG que exibe o registro
             {
-                print_follow_dreg(f_dregvec[i]);
+                print_follow_dreg(*f_dregvec[i]);
             }
 
             i++;                                                            // Incrementa a posição do vetor
@@ -198,7 +197,7 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
 {
 
     FOLLOW_HREG* f_hreg = f_arr->follow_hreg;                           // Simplificação de sintaxe
-    FOLLOW_DREG* f_dregvec = f_arr->follow_arr;                         // Simplificação de sintaxe
+    FOLLOW_DREG** f_dregvec = f_arr->follow_arr;                         // Simplificação de sintaxe
 
     fseek(follow_file,0,SEEK_SET);                                      // Posiciona o ponteiro para o inicio do arquivo
 
@@ -214,12 +213,12 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
 
     while (file_pos < file_size)                                        // Atua enquanto o arquivo nao terminar
     {
-        fwrite(&f_dregvec[i].removido,1,1,follow_file);                 // Escreve o campo 'removido' (1 byte)
-        fwrite(&f_dregvec[i].idPessoaQueSegue,4,1,follow_file);         // Escreve o campo 'idPessoaQueSegue' (4 bytes)
-        fwrite(&f_dregvec[i].idPessoaQueESeguida,4,1,follow_file);      // Escreve o campo 'idPessoaQueESeguida' (4 bytes)
-        fwrite(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);      // Escreve o campo 'dataInicioQUeSegue' (10 bytes)
-        fwrite(f_dregvec[i].dataFimQueSegue,10,1,follow_file);         // Escreve o campo 'datFimQueSegue' (10 bytes)
-        fwrite(&f_dregvec[i].grauAmizade,1,1,follow_file);              // Escreve o campo 'grauAmizade' (1 byte)
+        fwrite(&f_dregvec[i]->removido,1,1,follow_file);                 // Escreve o campo 'removido' (1 byte)
+        fwrite(&f_dregvec[i]->idPessoaQueSegue,4,1,follow_file);         // Escreve o campo 'idPessoaQueSegue' (4 bytes)
+        fwrite(&f_dregvec[i]->idPessoaQueESeguida,4,1,follow_file);      // Escreve o campo 'idPessoaQueESeguida' (4 bytes)
+        fwrite(f_dregvec[i]->dataInicioQueSegue,10,1,follow_file);      // Escreve o campo 'dataInicioQUeSegue' (10 bytes)
+        fwrite(f_dregvec[i]->dataFimQueSegue,10,1,follow_file);         // Escreve o campo 'datFimQueSegue' (10 bytes)
+        fwrite(&f_dregvec[i]->grauAmizade,1,1,follow_file);              // Escreve o campo 'grauAmizade' (1 byte)
 
         i++;                                                            // Incrementa a posição do vetor
         file_pos += FOLLOW_DATA_REG_LEN;                                // Incrementa a posição do ponteiro do arquivo
@@ -238,8 +237,8 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
 int compare_follow_dreg(const void* a, const void* b)
 {
 
-    const FOLLOW_DREG* ca = (const FOLLOW_DREG *)a;                                     // Faz o cast do ponteiro para o tipo de dados desejado
-    const FOLLOW_DREG* cb = (const FOLLOW_DREG *)b;
+    const FOLLOW_DREG* ca = *(const FOLLOW_DREG **)a;                                   // Faz o cast do ponteiro para o tipo de dados desejado
+    const FOLLOW_DREG* cb = *(const FOLLOW_DREG **)b;
 
     if(ca->idPessoaQueSegue == cb->idPessoaQueSegue)                                    // Verifica se o campo 'idPessoaQueSegue' é igual em ambos os registros
     {
@@ -342,7 +341,7 @@ void printf_fdreg(FOLLOW_DREG* f_dreg)
     return:
         int occur => Indíce da primeira ocorrência
 */
-int f_first_ocurr(FOLLOW_DREG* f_dregcev, int len, int idPessoaQueSegue)
+int f_first_ocurr(FOLLOW_DREG** f_dregcev, int len, int idPessoaQueSegue)
 {
     int start = 0; int end = len - 1;                                       // Começa no indíce 0 e termina no índice len-1
     int ocurr = -1;                                                         // Valor 'nulo' para a ocorrência
@@ -351,18 +350,18 @@ int f_first_ocurr(FOLLOW_DREG* f_dregcev, int len, int idPessoaQueSegue)
     {  
         int half = start + (end - start)/2;                                 // Divide o vetor na metade (busca binária)
 
-        if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)            // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim e com o começo, visando encontrar a primeira aparoçaõ do 'idPessoaQueSegue'
+        if(f_dregcev[half]->idPessoaQueSegue == idPessoaQueSegue)            // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim e com o começo, visando encontrar a primeira aparoçaõ do 'idPessoaQueSegue'
         {
             ocurr = half;                                                   // Valor do índice de ocorrência == half
             end = half - 1;                                                 // Aproxima end de start
         }
 
-        else if(f_dregcev[half].idPessoaQueSegue < idPessoaQueSegue)        // Caso o valor atual seja menor que o desejado, pegua a metade à direita do vetor
+        else if(f_dregcev[half]->idPessoaQueSegue < idPessoaQueSegue)        // Caso o valor atual seja menor que o desejado, pegua a metade à direita do vetor
         {
             start = half + 1;
         }
 
-        else if(f_dregcev[half].idPessoaQueSegue > idPessoaQueSegue)        // Caso o vaor atual seja maior que o desejado , pega a metade à esquerda do vetor
+        else if(f_dregcev[half]->idPessoaQueSegue > idPessoaQueSegue)        // Caso o vaor atual seja maior que o desejado , pega a metade à esquerda do vetor
         {
             end = half - 1;
         }
@@ -382,7 +381,7 @@ int f_first_ocurr(FOLLOW_DREG* f_dregcev, int len, int idPessoaQueSegue)
     return:
         int occur => Indíce da última ocorrência
 */
-int f_last_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
+int f_last_ocurr(FOLLOW_DREG** f_dregcev,int len,int idPessoaQueSegue)
 {
     int start = 0; int end = len - 1;                                   // Começa no indíce 0 e termina no índice len-1
     int ocurr = -1;                                                     // Valor 'nulo' para a ocorrência
@@ -391,18 +390,18 @@ int f_last_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
     {
         int half = start + (end - start)/2;                             // Divide o vetor na metade (busca binária)
 
-        if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)        // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim com o começo, visando encontrar a primeira apariçaõ do 'idPessoaQueSegue'
+        if(f_dregcev[half]->idPessoaQueSegue == idPessoaQueSegue)        // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim com o começo, visando encontrar a primeira apariçaõ do 'idPessoaQueSegue'
         {
             ocurr = half;                                               // Valor do índice de ocorrência == half
             start = half + 1;                                           // Aproxima start de end  
         }
 
-        else if(f_dregcev[half].idPessoaQueSegue < idPessoaQueSegue)    // Caso o valor atual seja menor que o desejado, pegua a metade à direita do vetor
+        else if(f_dregcev[half]->idPessoaQueSegue < idPessoaQueSegue)    // Caso o valor atual seja menor que o desejado, pegua a metade à direita do vetor
         {
             start = half + 1;
         }
 
-        else if(f_dregcev[half].idPessoaQueSegue > idPessoaQueSegue)    // Caso o valor atual seja maior que o desejado, pegua a metade à esquerda do vetor
+        else if(f_dregcev[half]->idPessoaQueSegue > idPessoaQueSegue)    // Caso o valor atual seja maior que o desejado, pegua a metade à esquerda do vetor
         {
             end = half - 1;
         }
@@ -428,14 +427,24 @@ FOLLOW_ARR* follow_match_reg(FOLLOW_ARR* f_arr, int idPessoaQueSegue)
     int last_index = f_last_ocurr(f_arr->follow_arr,f_arr->len,idPessoaQueSegue);
 
     if(first_index == -1 || last_index == -1)                                       // Caso não e encontre, retorna NULL
-    {
+    {   
+        destroy_follow_array(f_arr);
         return NULL;
     }
     int idx = 0;                                                                    // Variável auxiliar para copiar os elementos do vetor principal
     FOLLOW_ARR* found_f_arr = create_follow_arr(last_index - first_index + 1);
+
+    FOLLOW_DREG** src = f_arr->follow_arr;
+    FOLLOW_DREG** dest = found_f_arr->follow_arr;
+
     for(int i = first_index; i <= last_index; i++)                                  // Atua entre os indíces encontrados
     {
-        found_f_arr->follow_arr[idx] = f_arr->follow_arr[i];
+        dest[idx]->removido = src[i]->removido;                                     // Copia os registros que coincidem com a pessoa buscada
+        dest[idx]->idPessoaQueSegue = src[i]->idPessoaQueSegue;
+        dest[idx]->idPessoaQueESeguida = src[i]->idPessoaQueESeguida;
+        strcpy(dest[idx]->dataInicioQueSegue,src[i]->dataInicioQueSegue);
+        strcpy(dest[idx]->dataFimQueSegue,src[i]->dataFimQueSegue);
+        dest[idx]->grauAmizade = src[i]->grauAmizade;
         idx++;
     }
 
@@ -461,8 +470,10 @@ void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa)
 
     for(int i = 0; i < match_f_arr->len; i++)                   // Atua por todo o vetor de registros
     {
-        printf_fdreg(&match_f_arr->follow_arr[i]);              // Exibe cada registro correspondente de maneira formatada;
+        printf_fdreg(match_f_arr->follow_arr[i]);               // Exibe cada registro correspondente de maneira formatada;
     }
+
+    destroy_follow_array(match_f_arr);                          // Libera a memória do vetor criado
 }
 
 /*
@@ -506,21 +517,21 @@ FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
       
         //Passa pro array campo a campo
 
-        follow_arr->follow_arr[i].idPessoaQueSegue = atoi(fields[1]);
-        follow_arr->follow_arr[i].idPessoaQueESeguida = atoi(fields[2]);
+        follow_arr->follow_arr[i]->idPessoaQueSegue = atoi(fields[1]);
+        follow_arr->follow_arr[i]->idPessoaQueESeguida = atoi(fields[2]);
         
         end_string_on_mark(fields[5],"\n");
 
-        strcpy(follow_arr->follow_arr[i].dataInicioQueSegue, fields[3]);
+        strcpy(follow_arr->follow_arr[i]->dataInicioQueSegue, fields[3]);
 
         if(strcmp(fields[4],"") != 0)    //Testa se a dataFimQueSegue é nula
         {
-            strcpy(follow_arr->follow_arr[i].dataFimQueSegue, fields[4]);
+            strcpy(follow_arr->follow_arr[i]->dataFimQueSegue, fields[4]);
         }
 
         if(strcmp(fields[5],"") != 0)    //Testa se o grauAmizade é nulo
         {
-            follow_arr->follow_arr[i].grauAmizade = fields[5][0];
+            follow_arr->follow_arr[i]->grauAmizade = fields[5][0];
         }
         destroy_strip_matrix(fields);
     }
