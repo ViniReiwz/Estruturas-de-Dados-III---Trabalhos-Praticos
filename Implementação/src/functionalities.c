@@ -224,7 +224,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             size = size + 5; // adiciona 5, pois o tamanho do arquivo não conta os 5
                              // primeiros bytes (removido e tam_registro)
 
-            int is_removed;
+            int is_removed = '0';
             fseek(data_file, current_byte, SEEK_SET);
             fread(&is_removed, 1, 1, data_file);
             if(is_removed == '1')
@@ -256,7 +256,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             fread(&size, 4, 1, data_file);                // adiciona 5, pois o tamanho do arquivo não conta os 5
             size = size + 5;                              // primeiros bytes (removido e tam_registro)
 
-            int is_removed;
+            int is_removed = '0';
             fseek(data_file, current_byte, SEEK_SET);
             fread(&is_removed, 1, 1, data_file);
             if(is_removed == '1')
@@ -270,21 +270,23 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             
             if(size_name != 0)
             {
-                name = (char *)calloc(1, size_name); // Pega o nomePessoa
+                name = (char *)calloc(1, size_name + 1  ); // Pega o nomePessoa
                 fseek(data_file, current_byte + 17, SEEK_SET);
                 fread(name, size_name, 1, data_file);
             }
             else
             {
                 name = (char*)calloc(1, 5);
-                name = "NULO";
+                strcpy(name, "NULO");
             }
 
             if (strcmp(name, value) == 0) // Retorna o primeiro registro desejado desde o byte atual 
             {
+                free(name);
                 return current_byte;
             }
 
+            free(name);
             current_byte = current_byte + size;
         }
     }
@@ -301,7 +303,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             fread(&size, 4, 1, data_file);
             size = size + 5;
 
-            int is_removed;
+            int is_removed = '0';
             fseek(data_file, current_byte, SEEK_SET);
             fread(&is_removed, 1, 1, data_file);
             if(is_removed == '1')
@@ -318,21 +320,23 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
 
             if(size_name != 0)
             {
-                name = (char *)calloc(1, size_name); // pega o nomeUsuario
+                name = (char *)calloc(1, size_name + 1); // pega o nomeUsuario
                 fseek(data_file, current_byte + 21 + size_name_person, SEEK_SET);
                 fread(name, size_name, 1, data_file);
             }
             else   
             {
                 name = (char*)calloc(1, 5);
-                name = "NULO";
+                strcpy(name, "NULO");
             }
 
             if (strcmp(name, value) == 0)
             {
+                free(name);
                 return current_byte;
             }
 
+            free(name);
             current_byte = current_byte + size;
         }
     }
@@ -354,21 +358,21 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
         int id = atoi(value);
 
         INDEX_ARR *idx_array = save_index_in_mem(index_file); // puxa o indice para memória primária
-        int len = idx_array->len;
 
         int pos = index_binary_search(idx_array, id);
 
         // Pos == -1 => não há ID igual ao ID desejado
         if (pos == -1)
         {
+            destroy_index_arr(idx_array); // Desaloca memória
             return final_byte;
         }
         else // Caso o contrario retorna o byteoffset desejado
         {
-            return idx_array->idx_arr[pos].byteOffset;
+            long byteOffset = idx_array->idx_arr[pos].byteOffset;
+            destroy_index_arr(idx_array); // Desaloca memória
+            return byteOffset;
         }
-
-        destroy_index_arr(idx_array); // Desaloca memória
     }
     else
     {
@@ -445,7 +449,7 @@ void SELECT_FROM_WHERE(const char *data_filename, const char *index_filename, in
 
         if(no_register)    //Caso não encontre nenhum registro não removido
         {
-            printf("Registro inexistente.\n");
+            printf("Registro inexistente.\n\n");
         }
 
         // Desaloca memória
@@ -745,7 +749,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
     fread(&num_removed, 4, 1, data_file);
   
     fseek(data_file, 9, SEEK_SET);  // Posição do final byte no cabeçalho
-    long final_byte;
+    long final_byte = 0;
     fread(&final_byte, 8, 1, data_file);
 
     for(int i = 0; i < update_number; i++)
@@ -867,7 +871,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     reg->tamNomePessoa = len;
                     
                     free(reg->nomePessoa);
-                    reg->nomePessoa = (char *)calloc(len, 1);
+                    reg->nomePessoa = (char *)calloc(len + 1, 1);
                     strcpy(reg->nomePessoa, update[1]);
 
                     push_reg_to_memory(final_byte, data_file, reg); //Escreve no arquivo
@@ -877,7 +881,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     int pos = index_binary_search(idx_array, reg->idPessoa);
                     idx_array->idx_arr[pos].byteOffset = final_byte;
 
-                    final_byte = final_byte + reg->tamReg;
+                    final_byte = final_byte + reg->tamReg + 5;
                 }
                 else
                 {
@@ -886,8 +890,9 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     if(reg->nomePessoa != NULL)
                     {
                         free(reg->nomePessoa);
+                        reg->nomePessoa = NULL;
                     }
-                    reg->nomePessoa = (char*)calloc(len, 1);
+                    reg->nomePessoa = (char*)calloc(len + 1, 1);
                     strcpy(reg->nomePessoa, update[1]);
 
                     push_reg_to_memory(current_byte, data_file, reg);
@@ -922,7 +927,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     open_and_pull_index(&index_file, &idx_array, index_filename);
                     int pos = index_binary_search(idx_array, reg->idPessoa);
                     idx_array->idx_arr[pos].byteOffset = final_byte;
-                    final_byte = final_byte + reg->tamReg;
+                    final_byte = final_byte + reg->tamReg + 5;
                 }
                 else
                 {
@@ -931,6 +936,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                     if(reg->nomeUsuario != NULL)
                     {
                         free(reg->nomeUsuario);
+                        reg->nomeUsuario = NULL;
                     }
                     reg->nomeUsuario = (char*)calloc(len, 1);
                     strcpy(reg->nomeUsuario, update[1]);
@@ -1014,6 +1020,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     if(follow_file == NULL)
     {
         print_error();
+        destroy_follow_array(follow_arr);
         exit(EXIT_FAILURE);
     }
     

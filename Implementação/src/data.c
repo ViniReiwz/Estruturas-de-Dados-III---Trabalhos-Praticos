@@ -244,7 +244,7 @@ void load_csvfile_to_mem(FILE* file, DATA_LIST* data_list)
         if(strcmp(data[4],"") != 0)                                             // Verifica se o usuário é != NULL
         {
             data_reg->tamNomeUsuario = strlen(data[4]) -1;
-            data_reg->nomeUsuario = (char*)calloc(data_reg->tamNomeUsuario + 1,sizeof(char));   // Se for, aloca a memmória e copia a string
+            data_reg->nomeUsuario = (char*)calloc(data_reg->tamNomeUsuario + 2,sizeof(char));   // Se for, aloca a memmória e copia a string
             strcpy(data_reg->nomeUsuario,data[4]);
         }
         else{data_reg->tamNomeUsuario = 0;}                                         // Se não, mantém null e seta o tamanho como 0
@@ -414,7 +414,7 @@ void print_data_register(DATA_DREG data_register)
         {    
             for(int i = 0; i < data_register.tamNomePessoa; i++)
             {
-                if(data_register.nomeUsuario[i] != '$') //Testa se é lixo
+                if(data_register.nomePessoa[i] != '$') //Testa se é lixo
                 {
                     printf("%c", data_register.nomePessoa[i]);
                 }
@@ -486,14 +486,14 @@ DATA_DREG* pull_reg_from_memory(long byte_offset, FILE* data_file)
     fread(&(data_register->tamNomePessoa), 4, 1, data_file);
     if (data_register->tamNomePessoa > 0) // Caso a pessoa tenha nome ele será lido
     {
-        data_register->nomePessoa = (char *)calloc(1, data_register->tamNomePessoa);
+        data_register->nomePessoa = (char *)calloc(1, data_register->tamNomePessoa + 1);
         fread(data_register->nomePessoa, data_register->tamNomePessoa, 1, data_file);
     }
 
     fread(&(data_register->tamNomeUsuario), 4, 1, data_file);
     if (data_register->tamNomeUsuario > 0) // Caso o usuário tenha nome ele será lido
     {
-        data_register->nomeUsuario = (char *)calloc(1, data_register->tamNomeUsuario);
+        data_register->nomeUsuario = (char *)calloc(1, data_register->tamNomeUsuario + 1);
         fread(data_register->nomeUsuario, data_register->tamNomeUsuario, 1, data_file);
     }
  
