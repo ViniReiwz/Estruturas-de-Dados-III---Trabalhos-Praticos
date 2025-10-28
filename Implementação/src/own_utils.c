@@ -38,7 +38,7 @@ void end_string_on_mark(char* str, const char* mark)
     char** args => Retorna uma "matriz de strings", onde cada posição args[i] contém o conteúdo da string separada pelo espaço
 */
 char** strip_by_delim(const char unstriped_str[], const char delim,const int stop_on_first)
-{   
+{       
     int len = strlen(unstriped_str) + 1;                // Atribui o tamanho da string original à 'len'
     char **args = (char**)calloc(len,sizeof(char*));    // Aloca memória suficiente para a matri de strings
     char* aux = (char*)calloc(len,sizeof(char));        // Aloca memória para um a string auxiliar
@@ -65,8 +65,6 @@ char** strip_by_delim(const char unstriped_str[], const char delim,const int sto
             args[mpos] = (char*)calloc(strlen(aux) + 1,sizeof(char));   // Aloca na posição mpos o sufuciente para receber a string separada
             
             strcpy(args[mpos],aux);                     // Copia a string
-            
-
             end_string_on_mark(args[mpos],"\n");        // Substitui '\n' por '\0'
 
             memset(aux,0,strlen(aux));                  // Reseta aux para '\0'
@@ -80,6 +78,8 @@ char** strip_by_delim(const char unstriped_str[], const char delim,const int sto
         
     }
     args[0][0] = (n_str) + '0';                         // Transforma em char o valor de n_str e atribui à posição 0,0 da matriz
+
+    free(aux);
 
     return args;                                        // Retorna a matriz
 }
@@ -96,7 +96,7 @@ char** strip_by_delim(const char unstriped_str[], const char delim,const int sto
 void destroy_strip_matrix(char** strip_m)
 {
     int len = atoi(strip_m[0]);     // Vê quantos itens tem a matriz
-    for(int i = 0; i < len; i ++)
+    for(int i = 0; i < len + 1; i ++)
     {
         free(strip_m[i]);           // Libera cada string
     }
@@ -245,7 +245,7 @@ void remove_quotes(char* str)
         char* str_wo_comma = (char*)calloc(strlen(str) + 1, 1); 
 
         int j = 0;
-        for(int i = 0; i < strlen(str) + 1; i++)
+        for(unsigned long i = 0; i < strlen(str) + 1; i++)
         {
             if(str[i] != 34)    //caso seja aspas não copia
             {
@@ -276,7 +276,7 @@ void remove_everychar_until_space(char *str)
         return;
     }
 
-    int pos = 0;
+    unsigned long pos = 0;
     do
     {
         pos++;
@@ -287,9 +287,9 @@ void remove_everychar_until_space(char *str)
         return;
     }
 
-    char* str_wo_space = (char *)calloc(strlen(str) - pos, 1);
+    char* str_wo_space = (char *)calloc(strlen(str) - pos + 1, 1);
     
-    for(int i = pos; i < strlen(str); i++)
+    for(unsigned long i = pos; i < strlen(str) ; i++)
     {
         str_wo_space[i - pos] = str[i];    
     }

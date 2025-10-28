@@ -4,18 +4,20 @@ INC = ./include
 APP = ./app
 BIN = ./bin
 
+CFLAGS = -ggdb -Wall -Wextra -g
+
 all: libed myapps
 
 libed:
-		gcc -ggdb -c $(SRC)/data.c -I $(INC) -o $(OBJ)/data.o
-		gcc -ggdb -c $(SRC)/index.c -I $(INC) -o $(OBJ)/index.o
-		gcc -ggdb -c $(SRC)/utilidades.c -I $(INC) -o $(OBJ)/utilidades.o
-		gcc -ggdb -c $(SRC)/own_utils.c -I $(INC) -o $(OBJ)/own_utils.o
-		gcc -ggdb -c $(SRC)/follow.c -I $(INC) -o $(OBJ)/follow.o
-		gcc -ggdb -c $(SRC)/functionalities.c -I $(INC) -o $(OBJ)/functionalities.o
+		gcc $(CFLAGS) -c $(SRC)/data.c -I $(INC) -o $(OBJ)/data.o
+		gcc $(CFLAGS) -c $(SRC)/index.c -I $(INC) -o $(OBJ)/index.o
+		gcc $(CFLAGS) -c $(SRC)/utilidades.c -I $(INC) -o $(OBJ)/utilidades.o
+		gcc $(CFLAGS) -c $(SRC)/own_utils.c -I $(INC) -o $(OBJ)/own_utils.o
+		gcc $(CFLAGS) -c $(SRC)/follow.c -I $(INC) -o $(OBJ)/follow.o
+		gcc $(CFLAGS) -c $(SRC)/functionalities.c -I $(INC) -o $(OBJ)/functionalities.o
 
 myapps:
-		gcc -ggdb $(APP)/main.c $(OBJ)/*.o -I $(INC) -o $(BIN)/main
+		gcc $(CFLAGS) $(APP)/main.c $(OBJ)/*.o -I $(INC) -o $(BIN)/main
 
 run:
 		./$(BIN)/main
