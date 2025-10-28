@@ -289,7 +289,7 @@ void printf_fdreg(FOLLOW_DREG* f_dreg)
 {
     printf("Segue a pessoa de codigo: %i\n",f_dreg->idPessoaQueESeguida);   // Imprime 'idPessoaQueESeguida'
     
-    char date_start[11];
+    char date_start[11];                                                    // Verifica se as datas são não nulas e faz o tratamento
     date_start[10] = '\0';
     f_dreg->dataInicioQueSegue[0] == '$' ? strcpy(date_start,"-") : strcpy(date_start,f_dreg->dataInicioQueSegue);
 
@@ -349,7 +349,7 @@ int f_first_ocurr(FOLLOW_DREG* f_dregcev, int len, int idPessoaQueSegue)
 
     while (start<=end)                                                      // Atua enquanto os indíces não forem coincidentes
     {  
-        int half = start + (end - start)/2;                                         // Divide o vetor na metade (busca binária)
+        int half = start + (end - start)/2;                                 // Divide o vetor na metade (busca binária)
 
         if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)            // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim e com o começo, visando encontrar a primeira aparoçaõ do 'idPessoaQueSegue'
         {
@@ -389,7 +389,7 @@ int f_last_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
 
     while (start<=end)                                                  // Atua enquanto os indíces não forem coincidentes
     {
-        int half = start + (end - start)/2;                                     // Divide o vetor na metade (busca binária)
+        int half = start + (end - start)/2;                             // Divide o vetor na metade (busca binária)
 
         if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)        // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim com o começo, visando encontrar a primeira apariçaõ do 'idPessoaQueSegue'
         {

@@ -160,6 +160,12 @@ void remove_everychar_until_space(char *str);
 */
 char* reverse_date_string(char* date);
 
+/*
+    Lê o valor a ser buscado seguindo a formatação especificada na descrição do trabalho
+
+    return:
+        char** type_and_val => Matriz com o tipo do campo na posição 1 e o valor na posição 2
+*/
 char** read_for_search();
 
 
