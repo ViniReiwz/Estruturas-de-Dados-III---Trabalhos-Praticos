@@ -1170,9 +1170,9 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
     destroy_follow_array(f_arr);                                            // Libera a memória do arquivo do tipo 'segue'
 
-    fclose(data_file);
+    fclose(data_file);                                                      // Fecha todos os arquivos
     fclose(index_file);
     fclose(follow_file);
 
-    
+    puts("");                                                               // Imprime nova linha
 }
