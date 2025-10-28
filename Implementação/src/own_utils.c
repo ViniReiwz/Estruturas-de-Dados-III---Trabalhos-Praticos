@@ -341,6 +341,8 @@ char** read_for_search()
     char** type_and_val = strip_by_delim(num_and_field[2],'=',0);
     if(DEBUG){printf("type == %s --- val == %s\n",type_and_val[1],type_and_val[2]);}
 
+    remove_quotes(type_and_val[2]);
+
     destroy_strip_matrix(num_and_field);
 
     return type_and_val;

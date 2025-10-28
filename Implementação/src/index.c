@@ -249,7 +249,7 @@ int index_binary_search(INDEX_ARR* idx_array, int id)
     {
         middle = left + (right - left) / 2; // calcula o meio
 
-        if (left == right || idx_array->idx_arr[middle].idPessoa == id) // caso as extremidades sejam iguais sai do while
+        if (right < left || left == right || idx_array->idx_arr[middle].idPessoa == id) // caso as extremidades sejam iguais sai do while
         {                                                               // ou caso o conteudo do meio seja igual ao id
             break;
         }
@@ -290,6 +290,12 @@ int index_binary_search(INDEX_ARR* idx_array, int id)
 void remove_id_array(INDEX_ARR* idx_array, int id)
 {
     int pos = index_binary_search(idx_array, id);   // acha a posição desse ID no array
+    
+    if(pos == -1)
+    {
+        return;
+    }
+    
     int len = idx_array->len;
 
     for(int i = pos; i < len - 1; i++)  //Traz todos os registros a partir do ID uma posição

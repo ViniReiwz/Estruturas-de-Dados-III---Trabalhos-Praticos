@@ -211,7 +211,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
     {
         if(strcmp("NULO", value) == 0)
         {
-            value = "-1";
+            strcpy(value, "-1");
         }
 
         while (current_byte < final_byte)
@@ -223,6 +223,15 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             fread(&size, 4, 1, data_file);
             size = size + 5; // adiciona 5, pois o tamanho do arquivo não conta os 5
                              // primeiros bytes (removido e tam_registro)
+
+            int is_removed;
+            fseek(data_file, current_byte, SEEK_SET);
+            fread(&is_removed, 1, 1, data_file);
+            if(is_removed == '1')
+            {
+                current_byte = current_byte + size;
+                continue;
+            }
 
             fseek(data_file, current_byte + 9, SEEK_SET); // Pega a idade da pessoa no registro
             fread(&age, 4, 1, data_file);
@@ -247,6 +256,15 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             fread(&size, 4, 1, data_file);                // adiciona 5, pois o tamanho do arquivo não conta os 5
             size = size + 5;                              // primeiros bytes (removido e tam_registro)
 
+            int is_removed;
+            fseek(data_file, current_byte, SEEK_SET);
+            fread(&is_removed, 1, 1, data_file);
+            if(is_removed == '1')
+            {
+                current_byte = current_byte + size;
+                continue;
+            }
+            
             fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do campo nomePessoa
             fread(&size_name, 4, 1, data_file);
             
@@ -282,6 +300,15 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             fseek(data_file, current_byte + 1, SEEK_SET); // Pega o tamanho do registro
             fread(&size, 4, 1, data_file);
             size = size + 5;
+
+            int is_removed;
+            fseek(data_file, current_byte, SEEK_SET);
+            fread(&is_removed, 1, 1, data_file);
+            if(is_removed == '1')
+            {
+                current_byte = current_byte + size;
+                continue;
+            }
 
             fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do nome Pessoa
             fread(&size_name_person, 4, 1, data_file);     // faz isso para poder navegar pelo registro
@@ -799,15 +826,37 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
             }
             else if(strcmp(update[0], "idadePessoa") == 0) 
             {
-                int idade = atoi(update[1]);
-                fseek(data_file, current_byte + 9, SEEK_SET);
-                fwrite(&idade, 4, 1, data_file);
+                if(strcmp(update[1], "NULO") == 0)
+                {
+                    int idade = -1;
+                    fseek(data_file, current_byte + 9, SEEK_SET);
+                    fwrite(&idade, 4, 1, data_file);
+                }
+                else
+                {
+                    int idade = atoi(update[1]);
+                    fseek(data_file, current_byte + 9, SEEK_SET);
+                    fwrite(&idade, 4, 1, data_file);
+                }
             }
             else if(strcmp(update[0], "nomePessoa") == 0)
             {
                 int len = strlen(update[1]);
                 
-                if(reg->tamNomePessoa < len)    // Caso caiba não novo registro
+                if(strcmp(update[1], "NULO") == 0)
+                {
+                    int old_size_name = reg->tamNomePessoa;
+                    reg->tamNomePessoa = 0;
+
+                    push_reg_to_memory(current_byte, data_file, reg);
+                    
+                    char trash = '$';   //Completa com lixo
+                    for(int j = 0; j < old_size_name; j++)
+                    {
+                        fwrite(&trash, 1, 1, data_file);
+                    }
+                }
+                else if(reg->tamReg < len + 16 + reg->tamNomeUsuario)    // Caso caiba não novo registro
                 {
                     fseek(data_file, current_byte, SEEK_SET);   //Remove
                     char removed = '1';
@@ -832,7 +881,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                 }
                 else
                 {
-                    int old_size_name = reg->tamNomePessoa;
+                    int old_size_name = reg->tamReg - 16 - reg->tamNomeUsuario;
                     reg->tamNomePessoa = len;
                     strcpy(reg->nomePessoa, update[1]);
 
@@ -849,7 +898,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
             {
                 int len = strlen(update[1]);
                 
-                if(reg->tamNomeUsuario < len)
+                if(reg->tamReg < 16 + len + reg->tamNomePessoa)
                 {
                     fseek(data_file, current_byte, SEEK_SET);
                     char removed = '1';
@@ -872,7 +921,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
                 }
                 else
                 {
-                    int old_size_name = reg->tamNomeUsuario;
+                    int old_size_name = reg->tamReg - 16 - reg->tamNomePessoa;
                     reg->tamNomeUsuario = len;
                     strcpy(reg->nomeUsuario, update[1]);
 
@@ -941,7 +990,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     if(csv_file == NULL)
     {
         print_error();
-        exit(EXIT_FAILURE);
+        exit(EXIT_SUCCESS);
     }
 
     FOLLOW_ARR* follow_arr = load_follow_csv_into_array(csv_file);

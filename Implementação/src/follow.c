@@ -158,8 +158,8 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file)
             f_dregvec[i].removido = removido;                               // Guarda o campo 'removido' (1 byte)
             fread(&f_dregvec[i].idPessoaQueSegue,4,1,follow_file);          // Guarda o campo 'idPessoaQueSegue' (4 bytes)
             fread(&f_dregvec[i].idPessoaQueESeguida,4,1,follow_file);       // Guarda o campo 'idPessoaQueESeguida' (4 bytes)
-            fread(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);        // Guarda o campo 'dataInicioQueSegue' (10 bytes)
-            fread(f_dregvec[i].dataFimQueSegue,10,1,follow_file);           // Guarda o campo 'dataFimQueSegue' (10 bytes)
+            fread(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);       // Guarda o campo 'dataInicioQueSegue' (10 bytes)
+            fread(f_dregvec[i].dataFimQueSegue,10,1,follow_file);          // Guarda o campo 'dataFimQueSegue' (10 bytes)
             fread(&f_dregvec[i].grauAmizade,1,1,follow_file);               // Guarda o campo 'grauAmizade' (1 byte)
             
             f_dregvec[i].dataInicioQueSegue[10] = '\0';
@@ -217,8 +217,8 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
         fwrite(&f_dregvec[i].removido,1,1,follow_file);                 // Escreve o campo 'removido' (1 byte)
         fwrite(&f_dregvec[i].idPessoaQueSegue,4,1,follow_file);         // Escreve o campo 'idPessoaQueSegue' (4 bytes)
         fwrite(&f_dregvec[i].idPessoaQueESeguida,4,1,follow_file);      // Escreve o campo 'idPessoaQueESeguida' (4 bytes)
-        fwrite(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);       // Escreve o campo 'dataInicioQUeSegue' (10 bytes)
-        fwrite(f_dregvec[i].dataFimQueSegue,10,1,follow_file);          // Escreve o campo 'datFimQueSegue' (10 bytes)
+        fwrite(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);      // Escreve o campo 'dataInicioQUeSegue' (10 bytes)
+        fwrite(f_dregvec[i].dataFimQueSegue,10,1,follow_file);         // Escreve o campo 'datFimQueSegue' (10 bytes)
         fwrite(&f_dregvec[i].grauAmizade,1,1,follow_file);              // Escreve o campo 'grauAmizade' (1 byte)
 
         i++;                                                            // Incrementa a posição do vetor
@@ -503,7 +503,7 @@ FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
     {
         fgets(str_in, 100, follow_csv);
         char** fields = strip_by_delim(str_in, ',',0);
-        
+      
         //Passa pro array campo a campo
 
         follow_arr->follow_arr[i].idPessoaQueSegue = atoi(fields[1]);
@@ -522,11 +522,10 @@ FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
         {
             follow_arr->follow_arr[i].grauAmizade = fields[5][0];
         }
-
         destroy_strip_matrix(fields);
     }
     
-    follow_arr->follow_hreg->proxRRN = 9 + 30*len;
+    follow_arr->follow_hreg->proxRRN = len;
     follow_arr->follow_hreg->qtdPessoas = len;
     printf("len -> %i\n",len);
     printf("proxrrn -> %i\n",follow_arr->follow_hreg->proxRRN);
