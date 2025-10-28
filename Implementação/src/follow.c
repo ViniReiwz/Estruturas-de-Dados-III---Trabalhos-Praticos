@@ -24,9 +24,9 @@ FOLLOW_DREG* create_follow_dreg()
     follow_dreg->idPessoaQueSegue = follow_dreg->idPessoaQueESeguida = -1;  // Inicia os campos relacionados à pessoa que segue/é seguida como -1 (valor null para inteiros)
     follow_dreg->grauAmizade = '$';                                         // Inicia o campo 'grauAmziade' como '$' (null para char)
     follow_dreg->dataInicioQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca 10 bytes para ambas as strings que representam os campos de data
-    follow_dreg->dataFimQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char));    // Ver 'DATE_LEN' EM include/follow.h para alterar o valor
+    follow_dreg->dataFimQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char));    // Ver 'DATE_LEN' em include/follow.h para alterar o valor
 
-    for(int i = 0; i < DATE_LEN; i ++)                                      // Inicializa ambas as strings com o valo '$' em cada caracter -> Representa lixo de memória / null
+    for(int i = 0; i < DATE_LEN; i ++)                                      // Inicializa ambas as strings com o valor '$' em cada caracter -> Representa lixo de memória / null
     {
         follow_dreg->dataInicioQueSegue[i] = '$';
         follow_dreg->dataFimQueSegue[i] = '$';
@@ -66,17 +66,7 @@ FOLLOW_ARR* create_follow_arr(int len)
     
     for(int i = 0; i < len; i++)
     {
-        follow_array->follow_arr[i].removido = '0';                                                             // Inicia o campo 'removido' como '0' por padrão
-        follow_array->follow_arr[i].idPessoaQueSegue = follow_array->follow_arr[i].idPessoaQueESeguida = -1;  // Inicia os campos relacionados à pessoa que segue/é seguida como -1 (valor null para inteiros)
-        follow_array->follow_arr[i].grauAmizade = '$';                                         // Inicia o campo 'grauAmziade' como '$' (null para char)
-        follow_array->follow_arr[i].dataInicioQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char)); // Aloca 10 bytes para ambas as strings que representam os campos de data
-        follow_array->follow_arr[i].dataFimQueSegue = (char*)calloc(DATE_LEN + 1,sizeof(char));    // Ver 'DATE_LEN' EM include/follow.h para alterar o valor
-
-        for(int j = 0; j < DATE_LEN; j ++)                                      // Inicializa ambas as strings com o valo '$' em cada caracter -> Representa lixo de memória / null
-        {
-            follow_array->follow_arr[i].dataInicioQueSegue[j] = '$';
-            follow_array->follow_arr[i].dataFimQueSegue[j] = '$';
-        }
+        follow_array->follow_arr[i] = *create_follow_dreg();
     }
     
     return follow_array;                                                        // Retorna o endereço de memória da região alocada
@@ -155,7 +145,6 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file)
 
     f_hreg->qtdPessoas  = len;                                              // Guarda o campo 'qtdPessoas' na estrutura de dados
     fread(&f_hreg->proxRRN,4,1,follow_file);                                // Lê o próximo registro disponível para inserção e o guarda em memória primária
-
     int file_size = FOLLOW_DATA_REG_LEN * f_hreg->qtdPessoas;               // Variável que guarda o tamanho total do arquivo (descontando o registro de cabeçalho)
     int file_pos = 0;                                                       // Variável auxiliar para detectar quando o arquivo fora completamente lido
     int i = 0;                                                              // Variável auxiliar para indicar a posição do vetor de registros em memória primária
@@ -172,6 +161,11 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file)
             fread(f_dregvec[i].dataInicioQueSegue,10,1,follow_file);       // Guarda o campo 'dataInicioQueSegue' (10 bytes)
             fread(f_dregvec[i].dataFimQueSegue,10,1,follow_file);          // Guarda o campo 'dataFimQueSegue' (10 bytes)
             fread(&f_dregvec[i].grauAmizade,1,1,follow_file);               // Guarda o campo 'grauAmizade' (1 byte)
+            
+            f_dregvec[i].dataInicioQueSegue[10] = '\0';
+
+
+            f_dregvec[i].dataFimQueSegue[10] = '\0';
 
             if(DEBUG)                                                       // Mensage de DEBUG que exibe o registro
             {
@@ -184,7 +178,6 @@ FOLLOW_ARR* read_follow_file(FILE* follow_file)
         {
             fseek(follow_file,FOLLOW_DATA_REG_LEN,SEEK_CUR);
         }
-
         file_pos += FOLLOW_DATA_REG_LEN;                                    // Incrementa na variável auxiliar de posição
     }
     
@@ -207,6 +200,8 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
     FOLLOW_HREG* f_hreg = f_arr->follow_hreg;                           // Simplificação de sintaxe
     FOLLOW_DREG* f_dregvec = f_arr->follow_arr;                         // Simplificação de sintaxe
 
+    fseek(follow_file,0,SEEK_SET);                                      // Posiciona o ponteiro para o inicio do arquivo
+
     char status = '0';                                                  // Inicializa o arquivo com status '0' (inconsistente)
     fwrite(&status,1,1,follow_file);
 
@@ -227,7 +222,7 @@ void write_on_follow_file(FILE* follow_file,FOLLOW_ARR* f_arr)
         fwrite(&f_dregvec[i].grauAmizade,1,1,follow_file);              // Escreve o campo 'grauAmizade' (1 byte)
 
         i++;                                                            // Incrementa a posição do vetor
-        file_pos = file_pos + 30;
+        file_pos += FOLLOW_DATA_REG_LEN;                                // Incrementa a posição do ponteiro do arquivo
     }
 }
 
@@ -294,6 +289,14 @@ void printf_fdreg(FOLLOW_DREG* f_dreg)
 {
     printf("Segue a pessoa de codigo: %i\n",f_dreg->idPessoaQueESeguida);   // Imprime 'idPessoaQueESeguida'
     
+    char date_start[11];                                                    // Verifica se as datas são não nulas e faz o tratamento
+    date_start[10] = '\0';
+    f_dreg->dataInicioQueSegue[0] == '$' ? strcpy(date_start,"-") : strcpy(date_start,f_dreg->dataInicioQueSegue);
+
+    char date_end[11];
+    date_end[10] = '\0';
+    f_dreg->dataFimQueSegue[0] == '$' ? strcpy(date_end,"-") : strcpy(date_end,f_dreg->dataFimQueSegue);
+    
     char follow_why[50];                                                    // String para guardar motivo de seguir
     switch (f_dreg->grauAmizade)                                            // Varia para cada grau de amizade
     {
@@ -324,8 +327,8 @@ void printf_fdreg(FOLLOW_DREG* f_dreg)
 
     printf("Justificativa para seguir: %s\n",follow_why);                   // Imprime a justificativa pra seguir e um caracter de 'nova linha'
 
-    printf("Começou a seguir em: %s\n",f_dreg->dataInicioQueSegue);         // Imprime a data em que começou a seguir
-    printf("Parou de seguir em: %s\n\n",f_dreg->dataFimQueSegue);           // Imprime a data em que deixou de seguir
+    printf("Começou a seguir em: %s\n",date_start);                         // Imprime a data em que começou a seguir
+    printf("Parou de seguir em: %s\n\n",date_end);                          // Imprime a data em que deixou de seguir
 }
 
 /*
@@ -339,14 +342,15 @@ void printf_fdreg(FOLLOW_DREG* f_dreg)
     return:
         int occur => Indíce da primeira ocorrência
 */
-int f_first_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
+int f_first_ocurr(FOLLOW_DREG* f_dregcev, int len, int idPessoaQueSegue)
 {
     int start = 0; int end = len - 1;                                       // Começa no indíce 0 e termina no índice len-1
     int ocurr = -1;                                                         // Valor 'nulo' para a ocorrência
 
     while (start<=end)                                                      // Atua enquanto os indíces não forem coincidentes
-    {
-        int half = (end - start)/2;                                         // Divide o vetor na metade (busca binária)
+    {  
+        int half = start + (end - start)/2;                                 // Divide o vetor na metade (busca binária)
+
         if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)            // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim e com o começo, visando encontrar a primeira aparoçaõ do 'idPessoaQueSegue'
         {
             ocurr = half;                                                   // Valor do índice de ocorrência == half
@@ -385,7 +389,8 @@ int f_last_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
 
     while (start<=end)                                                  // Atua enquanto os indíces não forem coincidentes
     {
-        int half = (end - start)/2;                                     // Divide o vetor na metade (busca binária)
+        int half = start + (end - start)/2;                             // Divide o vetor na metade (busca binária)
+
         if(f_dregcev[half].idPessoaQueSegue == idPessoaQueSegue)        // Pela ordenação do arquivo, caso encontre o valor desejado, aproxima o indíce de fim com o começo, visando encontrar a primeira apariçaõ do 'idPessoaQueSegue'
         {
             ocurr = half;                                               // Valor do índice de ocorrência == half
@@ -419,9 +424,10 @@ int f_last_ocurr(FOLLOW_DREG* f_dregcev,int len,int idPessoaQueSegue)
 FOLLOW_ARR* follow_match_reg(FOLLOW_ARR* f_arr, int idPessoaQueSegue)
 {
     int first_index = f_first_ocurr(f_arr->follow_arr,f_arr->len,idPessoaQueSegue); // Encontra o indíce da primeira e ultima ocorrência do valor 'idPessoaQueSegue'
+
     int last_index = f_last_ocurr(f_arr->follow_arr,f_arr->len,idPessoaQueSegue);
 
-    if(first_index == -1 || last_index == -1)                                       // Caso nãoe encontre, retorna NULL
+    if(first_index == -1 || last_index == -1)                                       // Caso não e encontre, retorna NULL
     {
         return NULL;
     }
@@ -450,7 +456,7 @@ void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa)
 {
     FOLLOW_ARR* match_f_arr = follow_match_reg(f_arr,idPessoa); // Gera o vetor com todos os registros que satisfazem a condição de busca
 
-    if(match_f_arr!=NULL)                                       // Caso for NULL, exibe a mensagem de erro e sai da função
+    if(match_f_arr==NULL)                                       // Caso for NULL, exibe a mensagem de erro e sai da função
     {printf("Registro inexistente. \n"); return;}
 
     for(int i = 0; i < match_f_arr->len; i++)                   // Atua por todo o vetor de registros
@@ -497,20 +503,22 @@ FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
     {
         fgets(str_in, 100, follow_csv);
         char** fields = strip_by_delim(str_in, ',',0);
-
+      
         //Passa pro array campo a campo
 
         follow_arr->follow_arr[i].idPessoaQueSegue = atoi(fields[1]);
         follow_arr->follow_arr[i].idPessoaQueESeguida = atoi(fields[2]);
         
+        end_string_on_mark(fields[5],"\n");
+
         strcpy(follow_arr->follow_arr[i].dataInicioQueSegue, fields[3]);
 
-        if(fields[4][0] != '\0')    //Testa se a dataFimQueSegue é nula
+        if(strcmp(fields[4],"") != 0)    //Testa se a dataFimQueSegue é nula
         {
             strcpy(follow_arr->follow_arr[i].dataFimQueSegue, fields[4]);
         }
 
-        if(fields[5][0] != '\0')    //Testa se o grauAmizade é nulo
+        if(strcmp(fields[5],"") != 0)    //Testa se o grauAmizade é nulo
         {
             follow_arr->follow_arr[i].grauAmizade = fields[5][0];
         }
