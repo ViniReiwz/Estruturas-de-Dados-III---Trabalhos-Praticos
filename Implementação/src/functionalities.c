@@ -1162,6 +1162,8 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
             destroy_data_dreg(d_dreg);                                      // Libear a memória do registro do arquivo 'pessoa'
 
+            puts("");                                                       // Imprime nova linha
+
         }
 
         if(no_reg){printf("Registro inexsitente.\n");}                      // Exibe a mensagem caso nenhum registro seja encontrado
@@ -1172,7 +1174,5 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
     fclose(data_file);                                                      // Fecha todos os arquivos
     fclose(index_file);
-    fclose(follow_file);
-
-    puts("");                                                               // Imprime nova linha
+    fclose(follow_file);    
 }
