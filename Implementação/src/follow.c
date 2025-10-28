@@ -527,8 +527,6 @@ FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv)
     
     follow_arr->follow_hreg->proxRRN = len;
     follow_arr->follow_hreg->qtdPessoas = len;
-    printf("len -> %i\n",len);
-    printf("proxrrn -> %i\n",follow_arr->follow_hreg->proxRRN);
 
     return follow_arr;
 }
