@@ -92,7 +92,7 @@ INDEX_DREG indexate(int id, long int boffset);
 void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr);
 
 /*
-    Ordena os registros de índice utilizando o bubble sor aprimorado
+    Ordena os registros de índice utilizando o quick sort implementado na biblioteca stdlib.h do C
 
     params:
         INDEX_ARR* index_arr => Endereço do tipo INDEX_ARR, que contém o vetor a ser ordenado
