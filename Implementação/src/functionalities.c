@@ -230,7 +230,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             if(is_removed == '1')
             {
                 current_byte = current_byte + size;
-                continue;
+                return current_byte;
             }
 
             fseek(data_file, current_byte + 9, SEEK_SET); // Pega a idade da pessoa no registro
@@ -262,7 +262,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             if(is_removed == '1')
             {
                 current_byte = current_byte + size;
-                continue;
+                return current_byte;
             }
             
             fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do campo nomePessoa
@@ -309,7 +309,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             if(is_removed == '1')
             {
                 current_byte = current_byte + size;
-                continue;
+                return current_byte;
             }
 
             fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do nome Pessoa

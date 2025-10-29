@@ -154,7 +154,25 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
 }
 
 /*
-    Ordena os registros de índice utilizando o bubble sor aprimorado
+    Função que compara dois valores do tipo INDEX_DREG
+
+    params:
+        const void* a => Ponteiro para o primeiro elemento (sofre cast)
+        const void* b => Ponteiro para o segundo elemento (sofre cast)
+    
+    return:
+        int => Retorna a diferença entre os 'idPessoa', ordenando de forma crescente o vetor
+*/
+int compare_index(const void* a, const void* b)
+{
+    INDEX_DREG ca = *(INDEX_DREG*) a;
+    INDEX_DREG cb = *(INDEX_DREG*) b;
+
+    return ca.idPessoa - cb.idPessoa;
+}
+
+/*
+    Ordena os registros de índice utilizando o quick sort implementado na biblioteca stdlib.h do C
 
     params:
         INDEX_ARR* index_arr => Endereço do tipo INDEX_ARR, que contém o vetor a ser ordenado
@@ -164,26 +182,7 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr)
 */
 void order_index(INDEX_ARR* index_arr)
 {   
-    //Bubble sort aprimorado:
-
-    int aux = index_arr->len;                                                       // Variável auxiliar que carrega o tamanho do vetor
-    int swapped = 1;                                                                // Variável auxiliar que guarda a informação se o vetor foi alterado ou não
-    while (swapped)                                                                 // Atua enquanto o vetor estiver sendo alterado (ordenando-se)
-    {
-        swapped = 0;                                                                // Setado pra zero, logo sai do loop caso não seja atualizado
-        for(int i = 0; i < aux - 1; i ++)                                           // Percorre todo o vetor até que i+1 seja o último elemento
-        {
-            if(index_arr->idx_arr[i].idPessoa > index_arr->idx_arr[i+1].idPessoa)   // Verifica se o elemento i é > do que i + 1 (desorndenado)
-            {
-                INDEX_DREG hold = index_arr->idx_arr[i];                            // Variável auxiliar que guarda o valor da posição i
-                index_arr->idx_arr[i] = index_arr->idx_arr[i+1];                    // Troca o conteúdo das posições
-                index_arr->idx_arr[i+1] = hold;                                     
-                swapped = 1;                                                        // Indica que houve troca
-            }
-        }
-        aux--;                                                                      // Decrementa no aux, pois o último elemento sempre estará ordenado ao fim de cada loop
-    }
-    
+    qsort(index_arr->idx_arr,index_arr->len,sizeof(index_arr->idx_arr[0]),compare_index);
 }
 
 /*
