@@ -1187,6 +1187,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
         }
 
+        destroy_strip_matrix(type_and_value);                               // Libera a memória da matriz de tipo e valor
         if(no_reg){printf("Registro inexsitente.\n");}                      // Exibe a mensagem caso nenhum registro seja encontrado
 
     }
