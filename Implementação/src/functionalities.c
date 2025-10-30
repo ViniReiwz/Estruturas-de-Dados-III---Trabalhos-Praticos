@@ -230,7 +230,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             if(is_removed == '1')
             {
                 current_byte = current_byte + size;
-                return current_byte;
+                continue;
             }
 
             fseek(data_file, current_byte + 9, SEEK_SET); // Pega a idade da pessoa no registro
@@ -262,7 +262,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             if(is_removed == '1')
             {
                 current_byte = current_byte + size;
-                return current_byte;
+                continue;
             }
             
             fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do campo nomePessoa
@@ -309,7 +309,7 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
             if(is_removed == '1')
             {
                 current_byte = current_byte + size;
-                return current_byte;
+                continue;
             }
 
             fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do nome Pessoa
@@ -656,7 +656,7 @@ void INSERT_INTO(char* data_filename, char *index_filename, int insert_number)
         if(strcmp(values[2], "NULO") != 0)  
         {
             new_data_reg->tamNomePessoa = strlen(values[2]);
-            new_data_reg->nomePessoa = (char*)calloc(strlen(values[2]), 1);
+            new_data_reg->nomePessoa = (char*)calloc(strlen(values[2]) + 1, 1);
             strcpy(new_data_reg->nomePessoa, values[2]);
         }
         else
@@ -676,7 +676,7 @@ void INSERT_INTO(char* data_filename, char *index_filename, int insert_number)
 
         //nomeUsuário
         new_data_reg->tamNomeUsuario = strlen(values[4]);
-        new_data_reg->nomeUsuario = (char*)calloc(strlen(values[4]), 1);
+        new_data_reg->nomeUsuario = (char*)calloc(strlen(values[4]) + 1, 1);
         strcpy(new_data_reg->nomeUsuario, values[4]);
 
         //Tamanho e status
