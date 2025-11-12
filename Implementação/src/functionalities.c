@@ -207,17 +207,17 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
 {
     fseek(data_file, current_byte, SEEK_SET);                               // Coloca o cursor do arquivo no byte atual
 
-    int null_flag = strcmp(value,"NULO");                                   // Flag para saber se o valor buscado é nulo
-
     while(current_byte < final_byte)                                        // Atua durante todo o arquivo
     {
         DATA_DREG* d_dreg = pull_reg_from_memory(current_byte,data_file);   // Puxa o registro do byte atual para a memória primária
+
+        int null_flag = strcmp("NULO",value);                               // Flag para saber se o valor desejado é nulo
 
         if (d_dreg->removido != '1')                                        // Verifica se o registro não está logicamente removido
         {   
             if(strcmp(type,"idPessoa") == 0)                                // Caso procure por 'idPessoa'
             {
-                if(current_byte != DF_HEAD_REG_LEN || null_flag == 0)       
+                if(current_byte != DF_HEAD_REG_LEN || strcmp("NULO",value) == 0)       
                 {
                     return final_byte;                                      // Retorna o fim do arquivo caso seja nulo ou ja tenha encontrao o primeiro registro
                 }
@@ -252,19 +252,27 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
                 if(val == d_dreg->idadePessoa){return current_byte;}        // Retorna o offset atual caso as idades coincidam
             }
 
-            else if(strcmp(type,"nomePessoa") == 0)                         // Caso busque pelo 'nomePessoa'
+            else if(strcmp(type,"nomePessoa") == 0)                         // Caso busque pelo 'nomePessoa', retorna o byte offset se o valor do campo coincidir
             {
-                if((null_flag == 0 && d_dreg->nomePessoa == NULL) || (strcmp(value,d_dreg->nomePessoa) == 0))
+                if(d_dreg->nomePessoa == NULL)
                 {
-                    return current_byte;                                    // Retorna o offset se o campo coincidir
+                    if(null_flag == 0){return current_byte;}                
+                }
+                else
+                {
+                    if(strcmp(d_dreg->nomePessoa,value) == 0){return current_byte;}
                 }
             }
 
-            else if(strcmp(type,"nomeUsuario") == 0)                        // Caso busque pelo campo 'nomeUsuario'
+            else if(strcmp(type,"nomeUsuario") == 0)                        // Caso busque pelo campo 'nomeUsuario', retorna o byte offset se o valor do campo coincidir    
             {
-                if((null_flag == 0 && d_dreg->nomeUsuario == NULL)||(strcmp(value,d_dreg->nomeUsuario) == 0))
+                if(d_dreg->nomeUsuario == NULL)
                 {
-                    return current_byte;                                    // Retorna o offset se o campo coincidir
+                    if(null_flag == 0){return current_byte;}
+                }
+                else
+                {
+                    if(strcmp(d_dreg->nomeUsuario,value) == 0){return current_byte;}
                 }
             }
         }
