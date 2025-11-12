@@ -266,7 +266,11 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
 
             else if(strcmp(type,"nomeUsuario") == 0)                        // Caso busque pelo campo 'nomeUsuario', retorna o byte offset se o valor do campo coincidir    
             {
-                if(d_dreg->nomeUsuario == NULL)
+                if(current_byte != DF_HEAD_REG_LEN)                         // Caso não seja a primeira busca por usuário retorna o byte final
+                {
+                    return final_byte;
+                }
+                else if(d_dreg->nomeUsuario == NULL)
                 {
                     if(null_flag == 0){return current_byte;}
                 }
