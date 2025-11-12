@@ -53,9 +53,9 @@ DATA_DREG* create_data_dreg()
     ddreg->idadePessoa = -1;                                    // Campo idade pessoa (4 bytes), iniciado em -1                                   
     ddreg->idPessoa = -1;                                       // Campo Id pessoa (4 bytes), iniciado em -1
     ddreg->removido = '0';                                      // Campo removido (1 byte), representa a remoção lógica do registro
-    ddreg->tamNomePessoa = -1;                                   // Campo Tamanho do nomePessoa (4 bytes), iniciado em 0
+    ddreg->tamNomePessoa = -1;                                  // Campo Tamanho do nomePessoa (4 bytes), iniciado em 0
     ddreg->nomePessoa = NULL;                                   // Campo nomePessoa, iniciado em NULL (tamanho variável)
-    ddreg->tamNomeUsuario = -1;                                  // Campo tamNomeUsuario, iniciado em 0 (4 bytes)
+    ddreg->tamNomeUsuario = -1;                                 // Campo tamNomeUsuario, iniciado em 0 (4 bytes)
     ddreg->nomeUsuario = NULL;                                  // Campo nomeUsuario, iniciado em NULL (tamanho variável)
     ddreg->tamReg = -1;                                         // Tamanho do registro, iniciado em 0 (4 bytes)
 

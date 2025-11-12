@@ -103,7 +103,7 @@ void write_on_index_file(FILE* index_file, INDEX_ARR* idxarr);
 void order_index(INDEX_ARR* index_arr);
 
 /*
-    Recebe um arquivo de indice já aberto e puxa para memória primária seu conteúdp 
+    Recebe um arquivo de indice já aberto e puxa para memória primária seu conteúdo
 
     params:
         FILE* index_file => Arquivo de indice já aberto

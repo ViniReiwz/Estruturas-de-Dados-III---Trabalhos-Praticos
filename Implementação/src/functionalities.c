@@ -205,182 +205,74 @@ void SELECT_FROM_TABLE(const char *data_filename)
 
 long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename, char *type, char *value, long current_byte, long final_byte)
 {
-    fseek(data_file, current_byte, SEEK_SET);   //Coloca o cursor do arquivo no byte atual
+    fseek(data_file, current_byte, SEEK_SET);                               // Coloca o cursor do arquivo no byte atual
 
-    if (strcmp("idadePessoa", type) == 0)
+    int null_flag = strcmp(value,"NULO");                                   // Flag para saber se o valor buscado é nulo
+
+    while(current_byte < final_byte)                                        // Atua durante todo o arquivo
     {
-        if(strcmp("NULO", value) == 0)
-        {
-            strcpy(value, "-1");
-        }
+        DATA_DREG* d_dreg = pull_reg_from_memory(current_byte,data_file);   // Puxa o registro do byte atual para a memória primária
 
-        while (current_byte < final_byte)
-        {
-            int age;
-            int size;
-
-            fseek(data_file, current_byte + 1, SEEK_SET); // Pega o tamanho do registro
-            fread(&size, 4, 1, data_file);
-            size = size + 5; // adiciona 5, pois o tamanho do arquivo não conta os 5
-                             // primeiros bytes (removido e tam_registro)
-
-            int is_removed = '0';
-            fseek(data_file, current_byte, SEEK_SET);
-            fread(&is_removed, 1, 1, data_file);
-            if(is_removed == '1')
+        if (d_dreg->removido != '1')                                        // Verifica se o registro não está logicamente removido
+        {   
+            if(strcmp(type,"idPessoa") == 0)                                // Caso procure por 'idPessoa'
             {
-                current_byte = current_byte + size;
-                continue;
+                if(current_byte != DF_HEAD_REG_LEN || null_flag == 0)       
+                {
+                    return final_byte;                                      // Retorna o fim do arquivo caso seja nulo ou ja tenha encontrao o primeiro registro
+                }
+                
+                if(index_file == NULL)                                      // Abre o arquivo de indíce se necessário
+                {
+                    char* index_filepath = get_file_path(index_filename);
+                    index_file = fopen(index_filepath,"rb");
+                    free(index_filepath);
+                }
+
+                INDEX_ARR* idx_arr = save_index_in_mem(index_file);         // Puxa o arquivo de índice para memória primária
+                int pos = index_binary_search(idx_arr,atoi(value));         // Faz uma busca binária para o 'idPessoa' desejado
+
+                if(pos == -1)                                               // Retorna o fim do arquivo caso não encontre
+                {
+                    destroy_index_arr(idx_arr);
+                    return final_byte;
+                }
+                else                                                        // Retorna o byteoffset do arquivo 'pessoa' caso encontre
+                {
+                    int byteoffset = idx_arr->idx_arr[pos].byteOffset;
+                    destroy_index_arr(idx_arr);
+                    return byteoffset;
+                }
             }
 
-            fseek(data_file, current_byte + 9, SEEK_SET); // Pega a idade da pessoa no registro
-            fread(&age, 4, 1, data_file);
-
-            if (age == atoi(value)) // Retorna o primeiro registro desejado desde o byte atual
-            {
-                return current_byte;
+            else if(strcmp(type,"idadePessoa") == 0)                        // Caso procure por 'idadePessoa'
+            {   
+                int val = -1;
+                if(null_flag != 0){val = atoi(value);}                      // Caso seja diferente de nulo, atribui o valor da idade a val
+                if(val == d_dreg->idadePessoa){return current_byte;}        // Retorna o offset atual caso as idades coincidam
             }
 
-            current_byte = current_byte + size;
+            else if(strcmp(type,"nomePessoa") == 0)                         // Caso busque pelo 'nomePessoa'
+            {
+                if((null_flag == 0 && d_dreg->nomePessoa == NULL) || (strcmp(value,d_dreg->nomePessoa) == 0))
+                {
+                    return current_byte;                                    // Retorna o offset se o campo coincidir
+                }
+            }
+
+            else if(strcmp(type,"nomeUsuario") == 0)                        // Caso busque pelo campo 'nomeUsuario'
+            {
+                if((null_flag == 0 && d_dreg->nomeUsuario == NULL)||(strcmp(value,d_dreg->nomeUsuario) == 0))
+                {
+                    return current_byte;                                    // Retorna o offset se o campo coincidir
+                }
+            }
         }
+        current_byte += d_dreg->tamReg + 5;                                 // Passa para o próximo registro
+        destroy_data_dreg(d_dreg);                                          // Libera a memória do registro carregado anteriormente
     }
-    else if (strcmp("nomePessoa", type) == 0)
-    {
-        while (current_byte < final_byte)
-        {
-            char *name;
-            int size_name;
-            int size;
-
-            fseek(data_file, current_byte + 1, SEEK_SET); // Pega o tamanho de registro
-            fread(&size, 4, 1, data_file);                // adiciona 5, pois o tamanho do arquivo não conta os 5
-            size = size + 5;                              // primeiros bytes (removido e tam_registro)
-
-            int is_removed = '0';
-            fseek(data_file, current_byte, SEEK_SET);
-            fread(&is_removed, 1, 1, data_file);
-            if(is_removed == '1')
-            {
-                current_byte = current_byte + size;
-                continue;
-            }
-            
-            fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do campo nomePessoa
-            fread(&size_name, 4, 1, data_file);
-            
-            if(size_name != 0)
-            {
-                name = (char *)calloc(1, size_name + 1  ); // Pega o nomePessoa
-                fseek(data_file, current_byte + 17, SEEK_SET);
-                fread(name, size_name, 1, data_file);
-            }
-            else
-            {
-                name = (char*)calloc(1, 5);
-                strcpy(name, "NULO");
-            }
-
-            if (strcmp(name, value) == 0) // Retorna o primeiro registro desejado desde o byte atual 
-            {
-                free(name);
-                return current_byte;
-            }
-
-            free(name);
-            current_byte = current_byte + size;
-        }
-    }
-    else if (strcmp("nomeUsuario", type) == 0)
-    {
-        while (current_byte < final_byte)
-        {
-            char *name;
-            int size_name;
-            int size_name_person;
-            int size;
-
-            fseek(data_file, current_byte + 1, SEEK_SET); // Pega o tamanho do registro
-            fread(&size, 4, 1, data_file);
-            size = size + 5;
-
-            int is_removed = '0';
-            fseek(data_file, current_byte, SEEK_SET);
-            fread(&is_removed, 1, 1, data_file);
-            if(is_removed == '1')
-            {
-                current_byte = current_byte + size;
-                continue;
-            }
-
-            fseek(data_file, current_byte + 13, SEEK_SET); // Pega o tamanho do nome Pessoa
-            fread(&size_name_person, 4, 1, data_file);     // faz isso para poder navegar pelo registro
-
-            fseek(data_file, current_byte + 17 + size_name_person, SEEK_SET); // pega o tamanho do nome Usuario
-            fread(&size_name, 4, 1, data_file);
-
-            if(size_name != 0)
-            {
-                name = (char *)calloc(1, size_name + 1); // pega o nomeUsuario
-                fseek(data_file, current_byte + 21 + size_name_person, SEEK_SET);
-                fread(name, size_name, 1, data_file);
-            }
-            else   
-            {
-                name = (char*)calloc(1, 5);
-                strcpy(name, "NULO");
-            }
-
-            if (strcmp(name, value) == 0)
-            {
-                free(name);
-                return current_byte;
-            }
-
-            free(name);
-            current_byte = current_byte + size;
-        }
-    }
-    else if (strcmp("idPessoa", type) == 0)
-    {
-        if(current_byte != DF_HEAD_REG_LEN || strcmp("NULO", value) == 0) 
-                                    // Como todo usuário possui um ID único, apenas adimite
-        {                           // a busca quando no começo do registros de dados
-            return final_byte;      // e o ID é válido (diferente de "NULO")
-        }
-        
-        if (index_file == NULL) // abre o arquivo de indice caso ele não estivesse aberto ainda
-        {
-            char *index_path = get_file_path(index_filename);
-            index_file = fopen(index_path, "rb");
-            free(index_path);
-        }
-
-        int id = atoi(value);
-
-        INDEX_ARR *idx_array = save_index_in_mem(index_file); // puxa o indice para memória primária
-
-        int pos = index_binary_search(idx_array, id);
-
-        // Pos == -1 => não há ID igual ao ID desejado
-        if (pos == -1)
-        {
-            destroy_index_arr(idx_array); // Desaloca memória
-            return final_byte;
-        }
-        else // Caso o contrario retorna o byteoffset desejado
-        {
-            long byteOffset = idx_array->idx_arr[pos].byteOffset;
-            destroy_index_arr(idx_array); // Desaloca memória
-            return byteOffset;
-        }
-    }
-    else
-    {
-        printf("Opção Inválida");
-        exit(EXIT_FAILURE);
-    }
-
-    return final_byte;
+    
+    return final_byte;                                                      // Caso nada seja encontrado, retorna o fim do arquivo
 }
 
 /*
@@ -547,13 +439,13 @@ void DELETE_FROM_WHERE(char *data_filename, char *index_filename, int delete_num
             int size;
             fread(&size, 4, 1, data_file);  // Pega o campo "Tamanho_registro"
             
-            current_byte = current_byte + size + 5; // Próxima pesquisa começa a partir do 
-                                                    // próximo campo
-
+            
             int id;
             fread(&id, 4, 1, data_file);    // Pega o campo "id"
-
             remove_id_array(idx_array, id); // Retira o ID achado do indice
+            
+            current_byte = current_byte + size + 5; // Próxima pesquisa começa a partir do 
+                                                    // próximo registro
 
             num_people--;   //Diminui o número de pesssoas e aumenta o número de removidos
             num_removed++;
@@ -814,7 +706,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
 
             if(strcmp(update[0], "idPessoa") == 0)
             {   
-                //Abre o arquivo de indice e puxa o indeice para memória primária
+                //Abre o arquivo de indice e puxa o indice para memória primária
                 open_and_pull_index(&index_file, &idx_array, index_filename);
 
                 //tira o ID do array
@@ -1140,7 +1032,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     }
     free(follow_filepath);
 
-    fseek(data_file,9,SEEK_SET);                                             // Move o ponteiro do arquivo para o campo 'proxByteOffset'
+    fseek(data_file,9,SEEK_SET);                                            // Move o ponteiro do arquivo para o campo 'proxByteOffset'
 
     long int final_byte;
     fread(&final_byte,8,1,data_file);                                       // Lê os 8 bytes que correspondem ao fim do arquivo
