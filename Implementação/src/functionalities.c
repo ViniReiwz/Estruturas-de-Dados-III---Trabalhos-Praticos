@@ -207,6 +207,8 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
 {
     fseek(data_file, current_byte, SEEK_SET);                               // Coloca o cursor do arquivo no byte atual
 
+    long int start_curr_byte = current_byte;                                // Variável auxiliar para saber se já encontrou alguma pessoa
+
     while(current_byte < final_byte)                                        // Atua durante todo o arquivo
     {
         DATA_DREG* d_dreg = pull_reg_from_memory(current_byte,data_file);   // Puxa o registro do byte atual para a memória primária
@@ -266,14 +268,18 @@ long WHERE_PESSOA(FILE *data_file, FILE *index_file, const char* index_filename,
 
             else if(strcmp(type,"nomeUsuario") == 0)                        // Caso busque pelo campo 'nomeUsuario', retorna o byte offset se o valor do campo coincidir    
             {
-                if(d_dreg->nomeUsuario == NULL)
-                {
-                    if(null_flag == 0){return current_byte;}
-                }
+                if(start_curr_byte != DF_HEAD_REG_LEN){return final_byte;}  // Como o campo é único, caso já tenha encontrado alguma pessoa coincidente, retorna o fim do arquivo
                 else
-                {
-                    if(strcmp(d_dreg->nomeUsuario,value) == 0){return current_byte;}
-                }
+                    {
+                        if(d_dreg->nomeUsuario == NULL)
+                        {
+                            if(null_flag == 0){return current_byte;}
+                        }
+                        else
+                        {
+                            if(strcmp(d_dreg->nomeUsuario,value) == 0){return current_byte;}
+                        }
+                    }
             }
         }
         current_byte += d_dreg->tamReg + 5;                                 // Passa para o próximo registro
@@ -1003,7 +1009,7 @@ void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
         const char* data_filename => Nome do arquivo do tipo 'pessoa'
         const char* index_filename => Nome do arquivo de índice
         const char* follow_filename => Nome do arquivo do tipo 'segue'
-        const int search_number => Núemro de buscas a serem feitas no arquivo do tipo 'pessoa'
+        const int search_number => Número de buscas a serem feitas no arquivo do tipo 'pessoa'
 
     return:
         void;
