@@ -22,5 +22,6 @@
 #include "own_utils.h"
 #include "utilidades.h"
 #include "funcionalities.h"
+#include "graph.h"
 
 #endif
