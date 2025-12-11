@@ -1104,3 +1104,8 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     fclose(index_file);
     fclose(follow_file);    
 }
+
+void PRINT_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename)
+{
+
+}
