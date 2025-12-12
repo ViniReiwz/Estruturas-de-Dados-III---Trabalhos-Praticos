@@ -44,6 +44,33 @@ GRAPH* create_graph(int vertices_n)
     return graph;
 }
 
+void destroy_adj_list(ADJ_NODE* adj_head)
+{
+    if(adj_head->next!=NULL)
+    {
+        destroy_adj_node(adj_head->next);
+    }
+    free(adj_head->nomeUsuarioqueESeguido);
+    free(adj_head);
+    return;
+}
+
+void destroy_vertex(VERTEX* vertex)
+{
+    destroy_adj_list(vertex->adj_head);
+    free(vertex->nomeUsuarioqueSegue);
+    free(vertex);
+}
+
+void destroy_graph(GRAPH* graph)
+{
+    for(int i = 0; i < graph->vertices_n; i ++)
+    {
+        destroy_vertex(&graph->vertices_array[i]);
+    }
+    free(graph);
+}
+
 int compare_nodes(ADJ_NODE* a, ADJ_NODE* b)
 {
     int compare = strcmp(a->nomeUsuarioqueESeguido,b->nomeUsuarioqueESeguido);
@@ -83,4 +110,49 @@ void insert_adjacence(VERTEX* vertex, ADJ_NODE* adj)
             adj->ant = p;
         }
     }
+}
+
+char* search_username(int idPessoa, INDEX_ARR* index_arr, FILE* data_file)
+{
+    long int b_offset = index_binary_search(index_arr,idPessoa);
+    DATA_DREG* d_dreg = pull_reg_from_memory(b_offset,data_file);
+    char* nomeUsuario = (char*)calloc(d_dreg->tamNomeUsuario + 1,sizeof(char));
+    strcpy(nomeUsuario,d_dreg->nomeUsuario);
+    destroy_data_dreg(d_dreg);
+    return nomeUsuario;
+}
+
+ADJ_NODE* load_adjacence(FOLLOW_DREG* f_dreg)
+{
+    ADJ_NODE* adj = create_adj_node();
+    strcpy(adj->DataFimQueSegue,f_dreg->dataFimQueSegue);
+    strcpy(adj->DataInicioQueSegue,f_dreg->dataInicioQueSegue);
+    adj->grauAmizade = f_dreg->grauAmizade;
+    return adj;
+}
+
+VERTEX* load_vertex(FILE* data_file, INDEX_ARR* idx_arr, FOLLOW_ARR* f_match_arr)
+{   
+    VERTEX* vertex = create_vertex();
+    vertex->nomeUsuarioqueSegue = search_username(f_match_arr->follow_arr[0]->idPessoaQueSegue,idx_arr,data_file);
+    FOLLOW_DREG* f_arr = f_match_arr->follow_arr;
+    for(int i = 0; i < f_match_arr->len; i ++)
+    {
+        ADJ_NODE* adj = load_adjacence(&f_arr[i]);
+        adj = search_username(f_arr[i].idPessoaQueESeguida,idx_arr,data_file);
+        insert_adjacence(vertex,adj);
+    }
+    return vertex;
+}
+
+GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file)
+{
+    int vertices_n = 0;
+    fseek(data_file,1,SEEK_SET); // Pula o campo 'status'
+    fread(&vertices_n,4,1,data_file);
+
+    GRAPH* graph = create_graph(vertices_n);
+
+
+
 }

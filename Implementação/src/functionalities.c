@@ -1107,5 +1107,35 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
 void PRINT_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename)
 {
+    char* data_filepath = get_file_path(data_filename);                     // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
+    FILE* data_file = fopen(data_filepath,"rb");
+    if(data_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
+        print_error();
+        return;
+    }
+    free(data_filepath);
+    
+    char* index_filepath = get_file_path(index_filename);
+    FILE* index_file = fopen(index_filepath,"rb");
+    if(index_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
+        print_error();
+        return;
+    }
+    free(index_filepath);
 
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath,"rb");
+    if(follow_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
+        print_error();
+        return;
+    }
+    free(follow_filepath);
+
+    
 }

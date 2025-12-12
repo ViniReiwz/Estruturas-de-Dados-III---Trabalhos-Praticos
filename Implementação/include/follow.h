@@ -174,4 +174,7 @@ void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa);
 */
 FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv);
 
+FOLLOW_ARR* follow_match_reg(FOLLOW_ARR* f_arr, int idPessoaQueSegue);
+
+
 #endif
