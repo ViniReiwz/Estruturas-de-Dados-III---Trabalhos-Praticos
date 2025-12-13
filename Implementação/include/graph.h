@@ -16,16 +16,58 @@
 typedef struct _adjacence_node
 {
 
-    char* nomeUsuarioqueESeguido;       // Nome do usuário do vértice adjacente
+    char* nomeUsuarioqueESeguido;           // Nome do usuário do vértice adjacente
     char DataInicioQueSegue [DATE_LEN + 1]; // Data que se iniciou a relação entre os usuários
     char DataFimQueSegue [DATE_LEN + 1];    // Data que se terminou a relação entre os usuários
-    char grauAmizade;                   // Grau de amizade entre os usuários
-    struct _adjacence_node* next;       // Próximo elemento na lista (Próxima adjacência do vértice atual)
-    struct _adjacence_node* ant;        // Elemento anterior ao atual
+    char grauAmizade;                       // Grau de amizade entre os usuários
+    struct _adjacence_node* next;           // Próximo elemento na lista (Próxima adjacência do vértice atual)
+    struct _adjacence_node* ant;            // Elemento anterior ao atual
 
 }ADJ_NODE;
 
-// Represent um vértice qualquer do grafo, contendo o nome de usuário e sua lista de adjacências
+/*
+    Aloca memória para um nó da lista de adjacências
+
+    return:
+        ADJ_NODE* adj => Elemento da lista de adjacências em memória primária
+*/
+ADJ_NODE* create_adj_node();
+
+/*
+    Aloca memória para um vértice do grafo
+
+    return:
+        VERTEX* vertex => Vértice do grafo em memória primária
+*/
+VERTEX* create_vertex();
+
+/*
+    Aloca memória para um grafo, com os valores inicializados em nulo
+
+    params:
+        int vertices_n => Número de vértices do grafo
+    
+    return:
+        GRAPH* graph => Grafo em memória primária
+*/
+GRAPH* create_graph(int vertices_n);
+
+/*
+    Libera a memória para a lista de adjacências
+*/
+void destroy_adj_list(ADJ_NODE* adj_head);
+
+/*
+    Libera a memória de um vértice no grafo
+*/
+void destroy_vertex(VERTEX* vertex);
+
+/*
+    Libera a memória de um grafo
+*/
+void destroy_graph(GRAPH* graph);
+
+// Representa um vértice qualquer do grafo, contendo o nome de usuário e sua lista de adjacências
 typedef struct _graph_vertex
 {
     char* nomeUsuarioqueSegue;  // Nome do referente usuário
@@ -33,17 +75,98 @@ typedef struct _graph_vertex
 
 }VERTEX;
 
-// Super-estrutura que representa o grafo, contém o n° de vértices eo vetor de vértices propriamente dito
+// Super-estrutura que representa o grafo, contém o n° de vértices e o vetor de vértices propriamente dito (lista de adjacências)
 typedef struct _graph
 {
-    int vertices_n;         // Número de vértices do grafo
-    VERTEX** vertices_array; // Vetor de vértices
+    int vertices_n;             // Número de vértices do grafo
+    VERTEX** vertices_array;    // Vetor de vértices
     
 }GRAPH;
 
+/*
+    Compara vértices adjacentes para ordenar a lista, em ordem alfabética pelo campo 'nomeUsuario'
+    Caso empata, desempata pelo campo 'dataInicioQueSegue'
+
+    params:
+        ADJ_NODE* a => Nó a ser inserido
+        ADJ_NODE* b => Nó de comparação
+
+    return:
+        int compare => Valor 1 para a < b, 0 para o contrário
+*/
+int compare_nodes(ADJ_NODE* a, ADJ_NODE* b);
+
+/*
+    Compara os vértices do grafo, em ordem alfabética
+
+    params:
+        const void *a => Ponteiro genérico, convertido para VERTEX*
+        const void *b => Ponteiro genérico, convertido para VERTEX*
+    
+    return:
+        int => Valor que indica a posição do elemento (antes, se menor que 0, depois caso o contrário)
+*/
+int compare_vertex(const void *a, const void *b);
+
+/*
+    Ordena um grafo utilizando o quiscksort implementado na stdlib
+
+    params:
+        GRAPH* graph => Grafo a ser ordenado
+    
+    return:
+        void
+*/
+void order_graph(GRAPH* graph);
+
+/*
+    Insere um vértice adjacente na lista de adjacências
+
+    params:
+        VERTEX* vertex => Vértice ao qual o referido é adjacente
+        ADJ_NODE* adj => Adjacência a ser inserida
+    
+    return:
+        void
+*/
+void insert_adjacence(VERTEX* vertex, ADJ_NODE* adj);
+
+/*
+    Carrega a adjacência a partir de um registro de dados do arquivo segue
+
+    params:
+        FOLLOW_DREG* f_dreg => Registro de dados a ser utilizado
+    
+    return:
+        ADJ_NODE* adj => Adjacência em memória primária
+*/
+ADJ_NODE* load_adjacence(FOLLOW_DREG* f_dreg);
+
+/*
+    Carrega um vértice para a memória, junto com sua lista de adjacências
+
+    params:
+        FILE* data_file => Arquivo de dados onde persistem as informações
+        INDEX_ARR* idx_arr => Arquivo de índice em memória primária
+        FOLLOW_ARR* f_match-arr => Registros que contém todas as pessoas seguidas por um determinado usuário
+    
+    return:
+        VERTEX* vertex => Vértice carregado com todas as informações
+*/
+VERTEX* load_vertex(FILE* data_file, INDEX_ARR* idx_arr, FOLLOW_ARR* f_match_arr);
+
+/*
+    Gera um grafo a partir dos arquivos do tipo 'pessoa', 'indice' e 'segue, que indica um usuário e todos aqueles que o mesmo segue.
+
+    params:
+        FILE* data_file => Arquivo do tipo 'pessoa'
+        FILE* index_file => Arquivo do tipo 'indice'
+        FILE* follow_file => Arquivo do tipo 'segue', ordenado.
+    
+    return:
+        GRAPH* graph => Grafo resultante
+
+*/
 GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file);
-
-void printf_graph(GRAPH* graph);
-
 
 #endif

@@ -330,36 +330,130 @@ char* reverse_date_string(char* date)
     return reversed_date;                                           // Retorna a string invertida
 }
 
+/*
+    Lê o valor a ser buscado seguindo a formatação especificada na descrição do trabalho
+
+    return:
+        char** type_and_val => Matriz com o tipo do campo na posição 1 e o valor na posição 2
+*/
 char** read_for_search()
 {
-    char str[50];
-    fgets(str,50,stdin);
+    char str[50];                                       // Limpa o buffer de teclado
+    fgets(str,50,stdin);    
 
-    char** num_and_field = strip_by_delim(str,' ',1);
+    char** num_and_field = strip_by_delim(str,' ',1);               // Separa inicialmente por espaços, parando no primeiro (num tipo=valor)
     if(DEBUG){printf("num == %s --- field == %s\n",num_and_field[1],num_and_field[2]);}
 
-    char** type_and_val = strip_by_delim(num_and_field[2],'=',0);
+    char** type_and_val = strip_by_delim(num_and_field[2],'=',0);   // Separa pelo caracter de '=' (tipo=valor)
     if(DEBUG){printf("type == %s --- val == %s\n",type_and_val[1],type_and_val[2]);}
 
-    remove_quotes(type_and_val[2]);
+    remove_quotes(type_and_val[2]);                                 // Remove as aspas do valor, se necessário
 
-    destroy_strip_matrix(num_and_field);
+    destroy_strip_matrix(num_and_field);                            // Libera a memória da primeira matriz
 
     return type_and_val;
 
 }
 
+/*
+    Exibe um vértice do grafo, formatado de acordo com as especifciações do trabalho
+
+    params:
+        VERTEX* vertex => Vértice a ser exibido
+    
+    return:
+        void
+*/
+void printf_vertex(VERTEX* vertex)
+{
+    ADJ_NODE* p = vertex->adj_head;                             // Inicia a exibição a partir do primeiro elemento da lista de vértices adjacentes
+
+    while(p!=NULL)                                              // Percorre toda a lista
+    {
+        char DataInicio[DATE_LEN + 1];
+        char DataFim[DATE_LEN + 1];
+        
+        strcpy(DataInicio,p->DataInicioQueSegue);
+        strcpy(DataFim,p->DataFimQueSegue);
+
+        if(DataInicio[0] == '$'){strcpy(DataInicio,"NULO");}    // Trata para os casos de data nula
+        if(DataFim[0] == '$'){strcpy(DataFim,"NULO");}
+
+        printf("%s, ",vertex->nomeUsuarioqueSegue);
+        printf("%s, ",p->nomeUsuarioqueESeguido);
+        printf("%s, ",DataInicio);
+        printf("%s, ",DataFim);
+        if(p->grauAmizade != '$'){printf("%c",p->grauAmizade);} // Trata para os casos de 'grauAmizade' nulo
+        else{printf("NULO");}
+        puts("");                                               // Imprime uma nova linha
+        p = p->next;                                            // Avança na lista
+    }
+}
+
+/*
+    Exibe um grafo
+
+    params:
+        GRAPH* graph => Grafo a ser exibido
+*/
+void printf_graph(GRAPH* graph)
+{
+    for(int i = 0; i < graph->vertices_n; i ++) // Imprime vértice à vertice, com uma nova linah no final de cada um
+    {
+        printf_vertex(graph->vertices_array[i]);
+        printf("\n");
+    }
+}
+
+/*
+    Recupera o nome de usuário de uma pessoa através de seu id
+
+    params:
+        int idPessoa => Id a ser referenciado
+        INDEX_ARR* index_arr => Arquivo de 'indíce' em memória primária
+        FILE* data_file => Arquivo do tipo 'pessoa'
+
+    return:
+        char* nomeUsuario => Valor NULL para usuário inválido
+*/
+char* search_username(int idPessoa, INDEX_ARR* index_arr, FILE* data_file)
+{
+    int pos = index_binary_search(index_arr,idPessoa);                                          // Procura pelo usuário no arquivo de índice
+    if(pos == -1){return NULL;}                                                                 // Caso não encnontre, retorna NULL
+
+    DATA_DREG* d_dreg = pull_reg_from_memory(index_arr->idx_arr[pos].byteOffset,data_file);     // Recupera os dados do usuário para descobrir seu nomeUsuario
+
+    char* nomeUsuario = (char*)calloc(d_dreg->tamNomeUsuario + 1,sizeof(char));                 // Aloca a memória necessária e copia o nome
+    strcpy(nomeUsuario,d_dreg->nomeUsuario);
+
+    destroy_data_dreg(d_dreg);                                                                  // Libera a memória utilizada pelos dados do usuário
+
+    return nomeUsuario;                                                                         // Retorna o nome do Usuário
+}
+
+/*
+    Conta o número de usuários válidos
+
+    params:
+        FOLLOW_ARR* f_arr => Arquivo do tipo 'segue' em memória primária
+        INDEX_ARR* idx_arr => Arquivo do tipo 'indicce' em memória primária
+    
+    return:
+        int count => Número de ids (usuários) válidos
+*/
 int count_existing_ids(FOLLOW_ARR* f_arr,INDEX_ARR* idx_arr)
 {
     int i = 0;
     int count = 0;
-    while(i < f_arr->len)
+    while(i < f_arr->len)                                       // Percorre todo o arquivo 'segue'
     {
-        int curr_byte = f_arr->follow_arr[i]->idPessoaQueSegue;
-        FOLLOW_ARR* match = follow_match_reg(f_arr,curr_byte);
-        int pos = index_binary_search(idx_arr,curr_byte);
-        if(pos > -1){count++;}
-        i+=match->len;
+        int curr_id = f_arr->follow_arr[i]->idPessoaQueSegue;   // Pega o id atual
+        FOLLOW_ARR* match = follow_match_reg(f_arr,curr_id);    // Recupera todos as relações do id referente
+
+        int pos = index_binary_search(idx_arr,curr_id);         // Faz uma busca para ver se este existe no arquivo de índice
+        if(pos > -1){count++;}                                  // Caso exista, incrementa o contador
+
+        i += match->len;                                        // Passa para o próximo usuário
     }
 
     return count;

@@ -169,6 +169,29 @@ char* reverse_date_string(char* date);
 char** read_for_search();
 
 
+/*
+    Recupera o nome de usuário de uma pessoa através de seu id
+
+    params:
+        int idPessoa => Id a ser referenciado
+        INDEX_ARR* index_arr => Arquivo de 'indíce' em memória primária
+        FILE* data_file => Arquivo do tipo 'pessoa'
+
+    return:
+        char* nomeUsuario => Valor NULL para usuário inválido
+*/
+char* search_username(int idPessoa, INDEX_ARR* index_arr, FILE* data_file);
+
+/*
+    Conta o número de usuários válidos
+
+    params:
+        FOLLOW_ARR* f_arr => Arquivo do tipo 'segue' em memória primária
+        INDEX_ARR* idx_arr => Arquivo do tipo 'indicce' em memória primária
+    
+    return:
+        int count => Número de ids (usuários) válidos
+*/
 int count_existing_ids(FOLLOW_ARR* f_arr,INDEX_ARR* idx_arr);
 
 #endif
