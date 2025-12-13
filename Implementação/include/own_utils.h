@@ -169,4 +169,6 @@ char* reverse_date_string(char* date);
 char** read_for_search();
 
 
+int count_existing_ids(FOLLOW_ARR* f_arr,INDEX_ARR* idx_arr);
+
 #endif
