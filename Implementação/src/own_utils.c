@@ -348,3 +348,19 @@ char** read_for_search()
     return type_and_val;
 
 }
+
+int count_existing_ids(FOLLOW_ARR* f_arr,INDEX_ARR* idx_arr)
+{
+    int i = 0;
+    int count = 0;
+    while(i < f_arr->len)
+    {
+        int curr_byte = f_arr->follow_arr[i]->idPessoaQueSegue;
+        FOLLOW_ARR* match = follow_match_reg(f_arr,curr_byte);
+        int pos = index_binary_search(idx_arr,curr_byte);
+        if(pos > -1){count++;}
+        i+=match->len;
+    }
+
+    return count;
+}

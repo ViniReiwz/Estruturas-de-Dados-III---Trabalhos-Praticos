@@ -79,7 +79,7 @@ void destroy_adj_list(ADJ_NODE* adj_head)
 
 void destroy_vertex(VERTEX* vertex)
 {
-    destroy_adj_list(vertex->adj_head);
+    // destroy_adj_list(vertex->adj_head);
     free(vertex->nomeUsuarioqueSegue);
     free(vertex);
 }
@@ -90,6 +90,7 @@ void destroy_graph(GRAPH* graph)
     {
         destroy_vertex(graph->vertices_array[i]);
     }
+    free(graph->vertices_array);
     free(graph);
 }
 
@@ -160,12 +161,15 @@ void insert_adjacence(VERTEX* vertex, ADJ_NODE* adj)
 char* search_username(int idPessoa, INDEX_ARR* index_arr, FILE* data_file)
 {
     int pos = index_binary_search(index_arr,idPessoa);
+    if(pos == -1){return NULL;}
     DATA_DREG* d_dreg = pull_reg_from_memory(index_arr->idx_arr[pos].byteOffset,data_file);
-    if(pos == -1 || d_dreg->removido == '1'){return NULL;}
     char* nomeUsuario = (char*)calloc(d_dreg->tamNomeUsuario + 1,sizeof(char));
     strcpy(nomeUsuario,d_dreg->nomeUsuario);
     destroy_data_dreg(d_dreg);
     return nomeUsuario;
+
+        
+    
 }
 
 ADJ_NODE* load_adjacence(FOLLOW_DREG* f_dreg)
@@ -187,7 +191,6 @@ VERTEX* load_vertex(FILE* data_file, INDEX_ARR* idx_arr, FOLLOW_ARR* f_match_arr
             if(vertex->nomeUsuarioqueSegue == NULL)
             {
                 vertex->nomeUsuarioqueSegue = search_username(f_match_arr->follow_arr[i]->idPessoaQueSegue,idx_arr,data_file);
-                if(vertex->nomeUsuarioqueSegue == NULL){return vertex;}
             }
             ADJ_NODE* adj = load_adjacence(f_match_arr->follow_arr[i]);
             adj->nomeUsuarioqueESeguido = search_username(f_match_arr->follow_arr[i]->idPessoaQueESeguida,idx_arr,data_file);
@@ -212,15 +215,17 @@ GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file)
     fread(&pessoas,4,1,data_file);              // Número de vértices == número de pessoas no arquivo pessoa
     fread(&removidos,4,1,data_file);
 
-    vertices_n = pessoas - removidos;
-
+    
     fseek(data_file,DF_HEAD_REG_LEN,SEEK_SET); // Pula o registro de cabeçalho do arquivo
-
-    GRAPH* graph = create_graph(vertices_n);
-
+    
+    
     INDEX_ARR* idx_arr = save_index_in_mem(index_file);
     
     FOLLOW_ARR* f_arr = read_follow_file(follow_file);
+    
+    vertices_n = count_existing_ids(f_arr,idx_arr);
+    
+    GRAPH* graph = create_graph(vertices_n);
 
     int idx = 0;
     int i = 0;
@@ -233,6 +238,7 @@ GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file)
             graph->vertices_array[i] = vertex;
             i++;
         }
+        else{destroy_vertex(vertex);}
         
         idx += f_match_id->len;
         destroy_follow_array(f_match_id);
