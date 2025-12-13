@@ -175,20 +175,38 @@ int main()
           break;
         }
     
-    case 10:
-    {
-        if(atoi(args[0]) < 5)
+        case 10:
         {
-            if(DEBUG)
+            if(atoi(args[0]) < 5)
             {
-                printf("Poucos argumentos!!\n");
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
             }
+            else
+            {
+                SELECT_FROM_JOIN_ON(args[2],args[3],args[4],atoi(args[5]));
+            }
+            break;
         }
-        else
+
+        case 11:
         {
-            SELECT_FROM_JOIN_ON(args[2],args[3],args[4],atoi(args[5]));
+            if(atoi(args[0]) < 4)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                PRINT_GRAPH(args[2],args[3],args[4]);
+            }
+            break;
         }
-    }
+    
         
     default:
         {   

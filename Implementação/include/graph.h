@@ -16,12 +16,12 @@
 typedef struct _adjacence_node
 {
 
-    char* nomeUsuarioqueESeguido;   // Nome do usuário do vértice adjacente
-    char DataInicioQueSegue [10];   // Data que se iniciou a relação entre os usuários
-    char DataFimQueSegue [10];      // Data que se terminou a relação entre os usuários
-    char grauAmizade;               // Grau de amizade entre os usuários
-    struct _adjacence_node* next;   // Próximo elemento na lista (Próxima adjacência do vértice atual)
-    struct _adjacence_node* ant;    // Elemento anterior ao atual
+    char* nomeUsuarioqueESeguido;       // Nome do usuário do vértice adjacente
+    char DataInicioQueSegue [DATE_LEN + 1]; // Data que se iniciou a relação entre os usuários
+    char DataFimQueSegue [DATE_LEN + 1];    // Data que se terminou a relação entre os usuários
+    char grauAmizade;                   // Grau de amizade entre os usuários
+    struct _adjacence_node* next;       // Próximo elemento na lista (Próxima adjacência do vértice atual)
+    struct _adjacence_node* ant;        // Elemento anterior ao atual
 
 }ADJ_NODE;
 
@@ -37,10 +37,13 @@ typedef struct _graph_vertex
 typedef struct _graph
 {
     int vertices_n;         // Número de vértices do grafo
-    VERTEX* vertices_array; // Vetor de vértices
+    VERTEX** vertices_array; // Vetor de vértices
     
 }GRAPH;
 
+GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file);
+
+void printf_graph(GRAPH* graph);
 
 
 #endif

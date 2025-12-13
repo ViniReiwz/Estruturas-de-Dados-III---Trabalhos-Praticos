@@ -11,6 +11,7 @@
 #define FOLLOW_H
 
 #define DATE_LEN 10
+#define FOLLOW_HEAD_REG_LEN 9
 #define FOLLOW_DATA_REG_LEN 30
 
 #include "all.h"

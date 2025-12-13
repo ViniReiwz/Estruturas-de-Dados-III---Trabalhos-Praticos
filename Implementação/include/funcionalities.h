@@ -161,4 +161,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename);
 */
 void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, const char* follow_filename, const int search_number);
 
+void PRINT_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename);
+
+
 #endif
