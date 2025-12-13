@@ -11,6 +11,7 @@
 #define FOLLOW_H
 
 #define DATE_LEN 10
+#define FOLLOW_HEAD_REG_LEN 9
 #define FOLLOW_DATA_REG_LEN 30
 
 #include "all.h"
@@ -173,5 +174,8 @@ void SELECT_WHERE_FOLLOW(FOLLOW_ARR* f_arr, int idPessoa);
         FOLLOW_ARR* => array de registros follow
 */
 FOLLOW_ARR* load_follow_csv_into_array(FILE* follow_csv);
+
+FOLLOW_ARR* follow_match_reg(FOLLOW_ARR* f_arr, int idPessoaQueSegue);
+
 
 #endif

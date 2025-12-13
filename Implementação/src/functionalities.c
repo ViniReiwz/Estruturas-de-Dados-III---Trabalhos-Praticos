@@ -912,7 +912,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     if(csv_file == NULL)
     {
         print_error();
-        exit(EXIT_SUCCESS);
+        exit(EXIT_FAILURE);
     }
 
     FOLLOW_ARR* follow_arr = load_follow_csv_into_array(csv_file);
@@ -1022,7 +1022,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
         print_error();
-        return;
+        exit(EXIT_FAILURE);
     }
     free(data_filepath);
     
@@ -1032,7 +1032,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
         print_error();
-        return;
+        exit(EXIT_FAILURE);
     }
     free(index_filepath);
 
@@ -1042,7 +1042,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
         print_error();
-        return;
+        exit(EXIT_FAILURE);
     }
     free(follow_filepath);
 
@@ -1055,7 +1055,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
 
     for(int i = 0; i < search_number; i++)                                  // Atua enquanto houverem busacas à ser feitas
     {
-        char** type_and_value = read_for_search();                          // Lê a strign na forma 'n type=value'
+        char** type_and_value = read_for_search();                          // Lê a string na forma 'n type=value'
 
         remove_quotes(type_and_value[2]);                                   // Remove as aspas do valor, se houver
 
@@ -1064,7 +1064,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
         
         long int curr_byte = DF_HEAD_REG_LEN;                               // Variável auxiliar para percorrer todo o arquivo, pula o registro de cabeçalho
 
-        int no_reg = 1;                                                     // Flag para saber sealgum registro fora encontrado
+        int no_reg = 1;                                                     // Flag para saber se algum registro fora encontrado
 
         while (curr_byte < final_byte)                                      // Percorre todo o arquivo
         {
@@ -1103,4 +1103,42 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     fclose(data_file);                                                      // Fecha todos os arquivos
     fclose(index_file);
     fclose(follow_file);    
+}
+
+void PRINT_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename)
+{
+    char* data_filepath = get_file_path(data_filename);                     // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
+    FILE* data_file = fopen(data_filepath,"rb");
+    if(data_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    free(data_filepath);
+    
+    char* index_filepath = get_file_path(index_filename);
+    FILE* index_file = fopen(index_filepath,"rb");
+    if(index_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    free(index_filepath);
+
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath,"rb");
+    if(follow_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
+        print_error();
+        exit(EXIT_FAILURE);
+    }
+    free(follow_filepath);
+
+    GRAPH* graph = generate_graph(data_file,index_file,follow_file);
+
+    printf_graph(graph);
+    
 }

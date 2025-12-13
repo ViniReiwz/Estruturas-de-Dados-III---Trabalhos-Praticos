@@ -15,6 +15,7 @@ libed:
 		gcc $(CFLAGS) -c $(SRC)/own_utils.c -I $(INC) -o $(OBJ)/own_utils.o
 		gcc $(CFLAGS) -c $(SRC)/follow.c -I $(INC) -o $(OBJ)/follow.o
 		gcc $(CFLAGS) -c $(SRC)/functionalities.c -I $(INC) -o $(OBJ)/functionalities.o
+		gcc $(CFLAGS) -c $(SRC)/graph.c -I $(INC) -o $(OBJ)/graph.o
 
 myapps:
 		gcc $(CFLAGS) $(APP)/main.c $(OBJ)/*.o -I $(INC) -o $(BIN)/main
