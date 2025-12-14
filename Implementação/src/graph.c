@@ -53,12 +53,8 @@ GRAPH* create_graph(int vertices_n)
 {
     GRAPH* graph = (GRAPH*)calloc(1,sizeof(GRAPH));
     graph->vertices_n = vertices_n;
+    graph->filled_vertices = 0;
     graph->vertices_array = (VERTEX**)calloc(vertices_n,sizeof(VERTEX*));
-
-    for(int i = 0; i < vertices_n; i ++)            // Aloca memória para todos os vértices necessários no grafo
-    {
-        graph->vertices_array[i] = create_vertex();
-    }
     return graph;
 }
 
@@ -67,11 +63,11 @@ GRAPH* create_graph(int vertices_n)
 */
 void destroy_adj_list(ADJ_NODE* adj_head)
 {
-    if(adj_head->next!=NULL && adj_head != NULL)
-    {
-        destroy_adj_list(adj_head->next);   // Percorre toda a lista recursivamente
-    }
-    free(adj_head->nomeUsuarioqueESeguido);
+    if(adj_head == NULL){return;}           // Caso a a sub-lista esteja vazia, retorna
+    else
+    {destroy_adj_list(adj_head->next);}     // Avança para a pdóxima sub-lista
+
+    free(adj_head->nomeUsuarioqueESeguido); // Libera a memória
     free(adj_head);
     return;
 }
@@ -137,7 +133,11 @@ int compare_vertex(const void *a, const void *b)
     VERTEX* va = *((VERTEX**)a);    // Faz o cast de um ponteiro genérico para um vértice
     VERTEX* vb = *((VERTEX**)b);
 
-    return strcmp(va->nomeUsuarioqueSegue,vb->nomeUsuarioqueSegue);
+    // Trata os casos de nulidade dos valores do nome
+    if(va->nomeUsuarioqueSegue == NULL && vb->nomeUsuarioqueSegue == NULL){return 0;}
+    else if(va->nomeUsuarioqueSegue == NULL){return 1;}
+    else if(vb->nomeUsuarioqueSegue == NULL){return -1;}
+    else{return strcmp(va->nomeUsuarioqueSegue,vb->nomeUsuarioqueSegue);}
 }
 
 /*
@@ -151,7 +151,8 @@ int compare_vertex(const void *a, const void *b)
 */
 void order_graph(GRAPH* graph)
 {
-    qsort(graph->vertices_array,graph->vertices_n,sizeof(graph->vertices_array[0]),compare_vertex);
+    // Ordena baseado no número de vértices atualmente preenchidos
+    qsort(graph->vertices_array,graph->filled_vertices,sizeof(graph->vertices_array[0]),compare_vertex);
 }
 
 /*
@@ -264,20 +265,16 @@ VERTEX* load_vertex(FILE* data_file, INDEX_ARR* idx_arr, FOLLOW_ARR* f_match_arr
 
     params:
         FILE* data_file => Arquivo do tipo 'pessoa'
-        FILE* index_file => Arquivo do tipo 'indice'
-        FILE* follow_file => Arquivo do tipo 'segue', ordenado.
+        INDEX_ARR* idx_arr => Arquivo do tipo 'indice' em memória primária
+        FOLLOW_ARR* follow_file => Arquivo do tipo 'segue', ordenado, em memória primária
     
     return:
         GRAPH* graph => Grafo resultante
 
 */
-GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file)
+GRAPH* generate_graph(FILE* data_file, INDEX_ARR* idx_arr, FOLLOW_ARR* f_arr)
 {    
     fseek(data_file,DF_HEAD_REG_LEN,SEEK_SET);          // Pula o registro de cabeçalho do arquivo para futuras leituras
-    
-    INDEX_ARR* idx_arr = save_index_in_mem(index_file); //  Salva o arquivo 'indice' em memória primária
-    
-    FOLLOW_ARR* f_arr = read_follow_file(follow_file);  // Salva o arquivo 'segue' em memória primária
     
     int vertices_n = count_existing_ids(f_arr,idx_arr); // Descobre o número de vértices necessários para a montagem do grafo
     
@@ -294,6 +291,7 @@ GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file)
         if(vertex->nomeUsuarioqueSegue != NULL)         // Caso seja um vértice válido, o coloca no grafo
         {
             graph->vertices_array[i] = vertex;
+            graph->filled_vertices++;
             i++;
         }
         else{destroy_vertex(vertex);}                   // Senão, libera a memória alocada
@@ -302,10 +300,82 @@ GRAPH* generate_graph(FILE* data_file, FILE* index_file, FILE* follow_file)
         destroy_follow_array(f_match_id);               // Libera a memória do vetor com as relações do referido usuário
     }
 
-    destroy_index_arr(idx_arr);                         // Libera os arquivos da memória primária                                         
-    destroy_follow_array(f_arr);
-
     order_graph(graph);                                 // Ordena o grafo por ordem alfabética
 
     return graph;
+}
+
+/*
+    Busca a posição que um vértice deveria ser inserido
+
+    params:
+        GRAPH* graph => Grafo no qual a busca será feita
+        const char* nomeUsuariovertice => Nome d usuário representado pelo vértice a ser buscado
+
+    return:
+        int pos => Indíce do vetor de vértices onde o referido nome deveria ser inserido
+*/
+int search_pos(GRAPH* graph, const char* nomeUsuarioVertice)
+{
+    for(int i = 0; i < graph->filled_vertices; i++) // Percorre todos os vértices preenchidos
+    {
+        // Verifica se em algum deles o nome está presente, retornando a posição no caso afirmativo
+        if(strcmp(graph->vertices_array[i]->nomeUsuarioqueSegue,nomeUsuarioVertice) == 0)   
+        {return i;}
+    }
+
+    return graph->filled_vertices;                  // Caso não encontre o nome, retorna a próxima posição disponível no vetor
+}
+
+/*
+    Gera o grafo transposto a partir de um outro grafo em memória primária
+
+    params:
+        GRAPH* graph => Grafo a transpor
+    
+    return:
+        GRAPH* transposed_graph => Grafo transposto
+*/
+GRAPH* transpose_graph(GRAPH* graph)
+{
+    GRAPH* transp_graph = create_graph(graph->vertices_n);                      // Cria o grafo transposto com o número total de vértices
+
+    for(int i = 0; i < graph->vertices_n ; i++)                                 // Percorre todo o grafo orginal
+    {
+        VERTEX* old_vertex = graph->vertices_array[i];                          // Renomeia para melhor manipulação
+        ADJ_NODE* p = old_vertex->adj_head;
+
+        while (p != NULL)                                                       // Percorre toda a lista de adjacências
+        {
+            int pos = search_pos(transp_graph,p->nomeUsuarioqueESeguido);       // Procura a posição onde o novo vértice deve ser inserido
+            if(transp_graph->vertices_array[pos] == NULL)                       // Caso a posição esteja vazia, cria novo vértice e insere
+            {
+                VERTEX* new_vertex = create_vertex();                           // Cria novo vértice
+
+                // Transpõe os dados (nomeUsuarioQueSegue troca de lugar com nomeUsuarioqueESeguido) entre o vértice antigo e seu adjacente, transformando uma adjacência em um vértice
+                new_vertex->nomeUsuarioqueSegue = (char*)calloc(strlen(p->nomeUsuarioqueESeguido) + 1,sizeof(char));
+                strcpy(new_vertex->nomeUsuarioqueSegue,p->nomeUsuarioqueESeguido);
+
+                transp_graph->vertices_array[pos] = new_vertex;                 // Posiciona o novo vértice no vetor
+                transp_graph->filled_vertices++;                
+            }
+
+
+            ADJ_NODE* adj = create_adj_node();                                  // Cria nova adjacência, com os dados do i-ésimo vértice do grafo original
+
+            adj->nomeUsuarioqueESeguido = (char*)calloc(strlen(old_vertex->nomeUsuarioqueSegue) + 1,sizeof(char));
+            strcpy(adj->nomeUsuarioqueESeguido,old_vertex->nomeUsuarioqueSegue);
+            strcpy(adj->DataInicioQueSegue,p->DataInicioQueSegue);
+            strcpy(adj->DataFimQueSegue,p->DataFimQueSegue);
+            adj->grauAmizade = p->grauAmizade;
+
+            insert_adjacence(transp_graph->vertices_array[pos],adj);            // Insere na lista de adjacências do vértice transposto
+
+            p = p->next;                                                        // Avança nas adjacências do grafo original
+        }
+    }
+
+    transp_graph->vertices_n = transp_graph->filled_vertices;                   // Rearranjo muda o n° de vpertice efetivos entre o original e o transposto
+
+    return transp_graph;
 }

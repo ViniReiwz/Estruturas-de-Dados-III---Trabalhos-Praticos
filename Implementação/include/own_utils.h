@@ -168,6 +168,24 @@ char* reverse_date_string(char* date);
 */
 char** read_for_search();
 
+/*
+    Exibe um vértice do grafo, formatado de acordo com as especifciações do trabalho
+
+    params:
+        VERTEX* vertex => Vértice a ser exibido
+    
+    return:
+        void
+*/
+void printf_vertex(VERTEX* vertex);
+
+/*
+    Exibe um grafo
+
+    params:
+        GRAPH* graph => Grafo a ser exibido
+*/
+void printf_graph(GRAPH* graph);
 
 /*
     Recupera o nome de usuário de uma pessoa através de seu id

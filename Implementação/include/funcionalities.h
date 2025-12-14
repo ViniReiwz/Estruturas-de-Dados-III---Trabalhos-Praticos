@@ -161,7 +161,30 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename);
 */
 void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, const char* follow_filename, const int search_number);
 
-void PRINT_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename);
+/*
+    Cria um grafo baseado nos arquivos do tipo 'pessoa','indice' e 'segue', exibindo-o de maneira formatada
 
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+    
+    return:
+        void
+*/
+void GENERATE_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename);
+
+/*
+    Cria um grafo baseado nos arquivos do tipo 'pessoa','indice' e 'segue'. Depois, transpõe-no e exibe de maneira frmatada
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+    
+    return:
+        void
+*/
+void GENERATE_TRANSPOSED(const char* data_filename, const char* index_filename, const char* follow_filename);
 
 #endif
