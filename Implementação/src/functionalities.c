@@ -110,7 +110,7 @@ int SELECT(FILE *const data_file, long const byte_offset, int *NO_REGISTER)
     if (data_file == NULL) // testa se o arquivo existe
     {
         print_error();
-        exit(EXIT_FAILURE);
+        exit(0);
     }
 
     DATA_DREG *data_register = pull_reg_from_memory(byte_offset, data_file);  // Puxa o registro para memória
@@ -858,7 +858,7 @@ void UPDATE_SET_WHERE(char* data_filename, char *index_filename, int update_numb
             }
             else
             {
-                exit(EXIT_FAILURE);
+                return;
             }
             
             destroy_data_dreg(reg);
@@ -912,7 +912,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     if(csv_file == NULL)
     {
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
 
     FOLLOW_ARR* follow_arr = load_follow_csv_into_array(csv_file);
@@ -927,7 +927,7 @@ void CREATE_FOLLOW_TABLE(char* csv_filename, char* follow_filename)
     {
         print_error();
         destroy_follow_array(follow_arr);
-        exit(EXIT_FAILURE);
+        return;
     }
     
     write_on_follow_file(follow_file, follow_arr);
@@ -965,7 +965,7 @@ void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
             printf("Arquivo %s inexistente\n",src_filepath);
         }
         print_error();                                                      // Exibe mensagem de erro e sai do programa caso não exista
-        exit(EXIT_FAILURE);
+        return;
     }
 
     FILE* ord_dest_file = fopen(ord_dest_filepath,"wb");                    // Abre o arquiv destino para escrita
@@ -976,7 +976,7 @@ void ORDER_BY(const char* src_filename, const char* ord_dest_filename)
             printf("Impossível de criar arquivo %s\n",ord_dest_filepath);
         }
         print_error();                                                      // Caso não seja criado, exibe mensagem de erro e encerra o programa
-        exit(EXIT_FAILURE);
+        return;
     }
 
     update_file_status(ord_dest_file,'0');                                  // Atualiza o status do arquivo destino para '0' (inconsistente)
@@ -1022,7 +1022,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(data_filepath);
     
@@ -1032,7 +1032,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(index_filepath);
 
@@ -1042,7 +1042,7 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(follow_filepath);
 
@@ -1105,15 +1105,27 @@ void SELECT_FROM_JOIN_ON(const char* data_filename, const char* index_filename, 
     fclose(follow_file);    
 }
 
-void PRINT_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename)
+
+/*
+    Cria um grafo baseado nos arquivos do tipo 'pessoa','indice' e 'segue', exibindo-o de maneira formatada
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+    
+    return:
+        void
+*/
+void GENERATE_GRAPH(const char* data_filename, const char* index_filename, const char* follow_filename)
 {
-    char* data_filepath = get_file_path(data_filename);                     // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
+    char* data_filepath = get_file_path(data_filename);             // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
     FILE* data_file = fopen(data_filepath,"rb");
     if(data_file == NULL)
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(data_filepath);
     
@@ -1123,7 +1135,7 @@ void PRINT_GRAPH(const char* data_filename, const char* index_filename, const ch
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(index_filepath);
 
@@ -1133,12 +1145,89 @@ void PRINT_GRAPH(const char* data_filename, const char* index_filename, const ch
     {
         if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
         print_error();
-        exit(EXIT_FAILURE);
+        return;
     }
     free(follow_filepath);
 
-    GRAPH* graph = generate_graph(data_file,index_file,follow_file);
+    INDEX_ARR* idx_arr = save_index_in_mem(index_file);             // Salva o arquivo de indíce em memória primaria
 
-    printf_graph(graph);
+    FOLLOW_ARR* follow_arr = read_follow_file(follow_file);         // Salva o arquivo do tipo 'segue' em memória primaria
+
+    GRAPH* graph = generate_graph(data_file,idx_arr,follow_arr);    // Gera o grafo
+
+    printf_graph(graph);                                            // Exibe o grafo
+
+    destroy_index_arr(idx_arr);                                     // Libera as memórias e fecha os arquivos
+    destroy_follow_array(follow_arr);
+    destroy_graph(graph);
+
+    fclose(data_file);
+    fclose(index_file);
+    fclose(follow_file);    
+}
+
+/*
+    Cria um grafo baseado nos arquivos do tipo 'pessoa','indice' e 'segue'. Depois, transpõe-no e exibe de maneira frmatada
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
     
+    return:
+        void
+*/
+void GENERATE_TRANSPOSED(const char* data_filename, const char* index_filename, const char* follow_filename)
+{
+    char* data_filepath = get_file_path(data_filename);                 // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
+    FILE* data_file = fopen(data_filepath,"rb");
+    if(data_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",data_filepath);}
+        print_error();
+        return;
+    }
+    free(data_filepath);
+    
+    char* index_filepath = get_file_path(index_filename);
+    FILE* index_file = fopen(index_filepath,"rb");
+    if(index_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",index_filepath);}
+        print_error();
+        return;
+    }
+    free(index_filepath);
+
+    char* follow_filepath = get_file_path(follow_filename);
+    FILE* follow_file = fopen(follow_filepath,"rb");
+    if(follow_file == NULL)
+    {
+        if(DEBUG){printf("Arquivo %s não encontrado !",follow_filepath);}
+        print_error();
+        return;
+    }
+    free(follow_filepath);
+
+
+    INDEX_ARR* idx_arr = save_index_in_mem(index_file);             // Carrega o arquivo do tipo 'indice' para memória primária
+
+    FOLLOW_ARR* f_arr = read_follow_file(follow_file);              // Carrega o arquivo do tipo 'segue' para memória primária
+
+    GRAPH* og_graph = generate_graph(data_file,idx_arr,f_arr);      // Cria ografo original a partir dos arquivos supracitados
+
+    GRAPH* transp_graph = transpose_graph(og_graph);                // Transpõe o grafo
+
+    order_graph(transp_graph);                                      // Ordena o grafo transposto
+
+    printf_graph(transp_graph);                                     // Exibe o resultado final
+
+    destroy_index_arr(idx_arr);                                     // Libera as memórias e fecha os arquivos
+    destroy_follow_array(f_arr);
+    destroy_graph(transp_graph);
+    destroy_graph(og_graph);
+
+    fclose(data_file);
+    fclose(index_file);
+    fclose(follow_file);
 }

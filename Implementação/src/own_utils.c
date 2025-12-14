@@ -452,9 +452,14 @@ int count_existing_ids(FOLLOW_ARR* f_arr,INDEX_ARR* idx_arr)
 
         int pos = index_binary_search(idx_arr,curr_id);         // Faz uma busca para ver se este existe no arquivo de índice
         if(pos > -1){count++;}                                  // Caso exista, incrementa o contador
+        if(match == NULL){i++;}
 
-        i += match->len;                                        // Passa para o próximo usuário
+        else
+        {
+            i += match->len;                                    // Passa para o próximo usuário
+            destroy_follow_array(match);                        // Libera a memória do vetor auxiliar
+        }
     }
 
-    return count;
+    return count;                                               // Retorna o número de ids válidos
 }

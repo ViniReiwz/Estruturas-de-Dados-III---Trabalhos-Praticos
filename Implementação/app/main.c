@@ -202,11 +202,26 @@ int main()
             }
             else
             {
-                PRINT_GRAPH(args[2],args[3],args[4]);
+                GENERATE_GRAPH(args[2],args[3],args[4]);
             }
             break;
         }
     
+        case 12:
+        {
+            if(atoi(args[0]) < 4)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                GENERATE_TRANSPOSED(args[2],args[3],args[4]);
+            }
+            break;
+        }
         
     default:
         {   
