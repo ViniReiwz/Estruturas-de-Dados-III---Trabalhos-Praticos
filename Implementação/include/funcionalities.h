@@ -187,4 +187,8 @@ void GENERATE_GRAPH(const char* data_filename, const char* index_filename, const
 */
 void GENERATE_TRANSPOSED(const char* data_filename, const char* index_filename, const char* follow_filename);
 
+void SHORTEST_PATH_TO_USER(const char* data_filename, const char* index_filename, const char* follow_filename, char* username);
+
+void SHORTEST_PATH_TO_ITSELF(const char* data_filename, const char* index_filename, const char* follow_filename, char* username);
+
 #endif

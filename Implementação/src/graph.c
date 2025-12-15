@@ -379,3 +379,221 @@ GRAPH* transpose_graph(GRAPH* graph)
 
     return transp_graph;
 }
+
+PATH* create_path()
+{
+    PATH* path = (PATH*)calloc(1, sizeof(PATH));
+    path->lengh = -1;
+    path->startpoint = NULL;
+
+    return path;
+}
+
+void add_edge_to_path(ADJ_NODE* node, VERTEX* vertex, PATH* path)
+{
+    EDGE* edge = (EDGE*)calloc(1, sizeof(EDGE));
+    
+    //Atribuição ao contrário por se tratar de um grafo transposto
+    edge->nomeUsuarioqueESeguido = vertex->nomeUsuarioqueSegue;
+    edge->nomeUsuarioqueSegue = node->nomeUsuarioqueESeguido;
+
+    edge->DataInicioQueSegue = node->DataInicioQueSegue;
+    edge->DataFimQueSegue = node->DataFimQueSegue;
+    edge->grauAmizade = node->grauAmizade;
+
+    if(path->startpoint == NULL)
+    {
+        path->startpoint = edge;
+        edge->next = NULL;
+        edge->ant = NULL;
+    }
+    else
+    {
+        edge->ant = NULL;
+        path->startpoint->ant = edge;
+        edge->next = path->startpoint;
+        path->startpoint = edge;
+    }
+    
+    path->lengh++;
+}
+
+void destroy_path(PATH *path)
+{
+    EDGE *p = path->startpoint;
+    EDGE *p_ant;
+
+    while(p != NULL)
+    {   
+        p_ant = p;
+        p = p->next;
+        free(p_ant);
+    }
+
+    free(path);
+}
+
+void clone_path(PATH* source, PATH* cloned)
+{
+    destroy_path(cloned);
+    cloned = create_path();
+
+    EDGE *p = source->startpoint;
+    while(p != NULL)
+    {
+        EDGE* edge = (EDGE*)calloc(1, sizeof(EDGE));
+
+        edge->nomeUsuarioqueESeguido = p->nomeUsuarioqueESeguido;
+        edge->nomeUsuarioqueSegue = p->nomeUsuarioqueSegue;
+        edge->DataInicioQueSegue = p->DataInicioQueSegue;
+        edge->DataFimQueSegue = p->DataFimQueSegue;
+        edge->grauAmizade = p->grauAmizade;
+
+        if(cloned->startpoint == NULL)
+        {
+            edge->next = NULL;
+            edge->ant = NULL;
+            cloned->startpoint = edge;
+        }
+        else
+        {
+            EDGE* pos = cloned->startpoint;
+            while(pos->next !=  NULL)
+            {
+                pos = pos->next;
+            }
+
+            pos->next = edge;
+            edge->ant = pos;
+            edge->next = NULL;    
+        }
+
+        p = p->next;
+    }
+
+    cloned->lengh = source->lengh;
+}
+
+void dijkstra(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited)
+{
+    int pos = search_pos(transposed_graph, startpoint);
+    if(array_path[pos]->lengh == -1)
+    {
+        array_path[pos]->lengh = 0;
+        was_visited[pos] = 1;
+    }
+
+    ADJ_NODE* p = transposed_graph->vertices_array[pos]->adj_head;
+    while(p != NULL)
+    {
+        int next_vert_pos = search_pos(transposed_graph, p->nomeUsuarioqueESeguido);
+        int still_following = strcmp(p->DataFimQueSegue, "$$$$$$$$$$");
+        if(still_following == 0 &&(array_path[next_vert_pos]->lengh == -1 || array_path[next_vert_pos]->lengh > array_path[pos]->lengh + 1))
+        {
+            clone_path(array_path[pos], array_path[next_vert_pos]);
+            add_edge_to_path(p ,transposed_graph->vertices_array[pos], array_path[next_vert_pos]);
+        }
+
+        p = p->next;
+    }
+
+    int smallest = 100000000;
+    int smallest_pos = -1;
+    for(int i = 0; i < transposed_graph->vertices_n; i++)
+    {   
+        if(array_path[i]->lengh != -1 && array_path[i]->lengh < smallest && was_visited[i] == 0)
+        {
+            smallest = array_path[i]->lengh;
+            smallest_pos = i;
+        }
+    }
+
+    if(smallest_pos != -1)
+    {
+        was_visited[smallest_pos] = 1;
+        dijkstra(transposed_graph, array_path, array_path[smallest_pos]->startpoint->nomeUsuarioqueSegue , was_visited);
+    }
+}
+
+void print_paths(PATH** array_path, int size)
+{
+    for(int i = 0; i < size; i++)
+    {
+        EDGE* p = array_path[i]->startpoint;
+
+        if(array_path[i]->lengh == 0)   // Pula a celebridade
+        {
+            continue;
+        }
+        else if(array_path[i]->lengh == -1) //Não há um caminho da celebridade até o usuario
+        {
+            printf("NAO SEGUE A CELEBRIDADE\n\n");
+            continue;
+        }
+
+        while (p != NULL)
+        {
+            printf("%s, %s, %s, ", p->nomeUsuarioqueSegue, p->nomeUsuarioqueESeguido, p->DataInicioQueSegue);
+            if(strcmp("$$$$$$$$$$", p->DataFimQueSegue) == 0)
+            {
+                printf("NULO, ");
+            }
+            else
+            {
+                printf("%s, ", p->DataFimQueSegue);
+            }
+            if(p->grauAmizade == '$')
+            {
+                printf("NULO\n");
+            }
+            else
+            {
+                printf("%c\n", p->grauAmizade);
+            }
+            p = p->next;
+        }
+
+        printf("\n");
+    }
+}
+
+void dijkstra_to_itself(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited)
+{
+    int pos = search_pos(transposed_graph, startpoint);
+    if(array_path[pos]->lengh == -1)
+    {
+        was_visited[pos] = 1;
+    }
+
+    ADJ_NODE* p = transposed_graph->vertices_array[pos]->adj_head;
+    while(p != NULL)
+    {
+        int next_vert_pos = search_pos(transposed_graph, p->nomeUsuarioqueESeguido);
+        int still_following = strcmp(p->DataFimQueSegue, "$$$$$$$$$$");
+        if(still_following == 0 &&(array_path[next_vert_pos]->lengh == -1 || array_path[next_vert_pos]->lengh > array_path[pos]->lengh + 1))
+        {
+            clone_path(array_path[pos], array_path[next_vert_pos]);
+            if(array_path[next_vert_pos]->lengh == -1)  array_path[next_vert_pos]->lengh = 0;
+            add_edge_to_path(p ,transposed_graph->vertices_array[pos], array_path[next_vert_pos]);
+        }
+
+        p = p->next;
+    }
+
+    int smallest = 100000000;
+    int smallest_pos = -1;
+    for(int i = 0; i < transposed_graph->vertices_n; i++)
+    {   
+        if(array_path[i]->lengh != -1 && array_path[i]->lengh < smallest && was_visited[i] == 0)
+        {
+            smallest = array_path[i]->lengh;
+            smallest_pos = i;
+        }
+    }
+
+    if(smallest_pos != -1)
+    {
+        was_visited[smallest_pos] = 1;
+        dijkstra(transposed_graph, array_path, array_path[smallest_pos]->startpoint->nomeUsuarioqueSegue , was_visited);
+    }
+}

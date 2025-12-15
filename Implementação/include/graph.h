@@ -12,6 +12,8 @@
 
 #include "all.h"
 
+#define MAX_ARR 50000
+
 // Estrutura de dados que representa a lista de adjacências do grafo
 typedef struct _adjacence_node
 {
@@ -41,6 +43,25 @@ typedef struct _graph
     VERTEX** vertices_array;    // Vetor de vértices
     
 }GRAPH;
+
+typedef struct _edge
+{
+    char* nomeUsuarioqueSegue;
+    char* nomeUsuarioqueESeguido;           // Nome do usuário do vértice adjacente
+    char* DataInicioQueSegue; // Data que se iniciou a relação entre os usuários
+    char* DataFimQueSegue;    // Data que se terminou a relação entre os usuários
+    char grauAmizade;                       // Grau de amizade entre os usuários
+    struct _edge* next;           // Próximo elemento na lista (Próxima adjacência do vértice atual)
+    struct _edge* ant;            // Elemento anterior ao atual
+
+}EDGE;
+
+typedef struct _path
+{
+    EDGE* startpoint;
+    int lengh;
+
+}PATH;
 
 /*
     Aloca memória para um nó da lista de adjacências
@@ -193,5 +214,18 @@ int search_pos(GRAPH* graph, const char* nomeUsuarioVertice);
 */
 GRAPH* transpose_graph(GRAPH* graph);
 
+PATH* create_path();
+
+void add_edge_to_path(ADJ_NODE* node, VERTEX* vertex, PATH* path);
+
+void destroy_path(PATH *path);
+
+void clone_path(PATH* source, PATH* cloned);
+
+void dijkstra(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited);
+
+void print_paths(PATH** array_path, int size);
+
+void dijkstra_to_itself(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited);
 
 #endif

@@ -222,6 +222,36 @@ int main()
             }
             break;
         }
+        case 13:
+        {
+            if(atoi(args[0]) < 5)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                SHORTEST_PATH_TO_USER(args[2],args[3],args[4], args[5]);
+            }
+            break;
+        }
+        case 14:
+        {
+            if(atoi(args[0]) < 5)
+            {
+                if(DEBUG)
+                {
+                    printf("Poucos argumentos!!\n");
+                }
+            }
+            else
+            {
+                SHORTEST_PATH_TO_ITSELF(args[2],args[3],args[4], args[5]);
+            }
+            break;
+        }
         
     default:
         {   
