@@ -187,8 +187,33 @@ void GENERATE_GRAPH(const char* data_filename, const char* index_filename, const
 */
 void GENERATE_TRANSPOSED(const char* data_filename, const char* index_filename, const char* follow_filename);
 
+/*
+    Printa na tela os caminhos mais curtos de um usuário até um outro usuário passado
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+        char* username => nome da celebridade destino do caminho
+
+    return:
+        void
+*/
+
 void SHORTEST_PATH_TO_USER(const char* data_filename, const char* index_filename, const char* follow_filename, char* username);
 
+/*
+    Printa a distância de um usuário a ele mesmo
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+        char* username => nome do usuário
+
+    return:
+        void
+*/
 void SHORTEST_PATH_TO_ITSELF(const char* data_filename, const char* index_filename, const char* follow_filename, char* username);
 
 #endif

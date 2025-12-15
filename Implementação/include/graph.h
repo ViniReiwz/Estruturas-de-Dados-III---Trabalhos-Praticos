@@ -214,17 +214,91 @@ int search_pos(GRAPH* graph, const char* nomeUsuarioVertice);
 */
 GRAPH* transpose_graph(GRAPH* graph);
 
+/*
+    Aloca a memória de uma path
+    
+    return:
+        PATH* path => path alocado
+*/
 PATH* create_path();
 
+/*
+    Adiciona uma aresta no começo da lista de arestas de um caminho
+
+    params:
+        ADJ_NODE* node => nó de onde informações são puxadas
+        VERTEX* vertex => vértice de onde informações são puxadas
+        PATH* path => caminho aonde a aresta é inserida
+    
+    return:
+        void
+*/
 void add_edge_to_path(ADJ_NODE* node, VERTEX* vertex, PATH* path);
 
+/*
+    Desaloca a memória usada no caminho
+
+    params:
+        PATH* path => caminho a ser desalocado
+    
+    return:
+        void
+*/
 void destroy_path(PATH *path);
 
+/*
+    Copia um caminho
+
+    params:
+        PATH* source => caminho a ser copiado
+        PATH* cloned => caminho copiado
+    
+    return:
+        void
+*/
 void clone_path(PATH* source, PATH* cloned);
 
+/*
+    Recebe um grafo, um array de caminhos e um array de inteiros adcional, bem como um usuario de onde se parte a busca.
+    Grava no array de caminhos o menor caminho de cada vértice até o vértice inicial.
+
+    params:
+        GRAPH* transposed_graph => grafo transposto onde a procura deve ser iniciada
+        PATH** array_path => array de caminhos
+        char* startpoint => nome do usuário do vértice
+        int* was_visited => inteiros auxiliares na determinação se um vértice foi ou não visitado
+    
+    return:
+        void
+*/
 void dijkstra(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited);
 
+/*
+    Printa na tela todos os caminhos de um vetor de caminhos.
+
+    params:
+        PATH** array_path => array de caminhos
+        int size => tamanho do vetor de caminhos
+    
+    return:
+        void
+*/
 void print_paths(PATH** array_path, int size);
+
+/*
+    Recebe um grafo, um array de caminhos e um array de inteiros adcional, bem como um usuario de onde se parte a busca.
+    Grava no array de caminhos o menor caminho de cada vértice até o vértice inicial. Esta versão acha também o menor caminho
+    da partida até ela mesma.
+
+    params:
+        GRAPH* transposed_graph => grafo transposto onde a procura deve ser iniciada
+        PATH** array_path => array de caminhos
+        char* startpoint => nome do usuário do vértice
+        int* was_visited => inteiros auxiliares na determinação se um vértice foi ou não visitado
+    
+    return:
+        void
+*/
 
 void dijkstra_to_itself(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited);
 

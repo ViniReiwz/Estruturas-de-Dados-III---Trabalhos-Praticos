@@ -380,6 +380,12 @@ GRAPH* transpose_graph(GRAPH* graph)
     return transp_graph;
 }
 
+/*
+    Aloca a memória de uma path
+    
+    return:
+        PATH* path => path alocado
+*/
 PATH* create_path()
 {
     PATH* path = (PATH*)calloc(1, sizeof(PATH));
@@ -389,6 +395,17 @@ PATH* create_path()
     return path;
 }
 
+/*
+    Adiciona uma aresta no começo da lista de arestas de um caminho
+
+    params:
+        ADJ_NODE* node => nó de onde informações são puxadas
+        VERTEX* vertex => vértice de onde informações são puxadas
+        PATH* path => caminho aonde a aresta é inserida
+    
+    return:
+        void
+*/
 void add_edge_to_path(ADJ_NODE* node, VERTEX* vertex, PATH* path)
 {
     EDGE* edge = (EDGE*)calloc(1, sizeof(EDGE));
@@ -401,13 +418,13 @@ void add_edge_to_path(ADJ_NODE* node, VERTEX* vertex, PATH* path)
     edge->DataFimQueSegue = node->DataFimQueSegue;
     edge->grauAmizade = node->grauAmizade;
 
-    if(path->startpoint == NULL)
+    if(path->startpoint == NULL)    //Adiciona na lista vazia
     {
         path->startpoint = edge;
         edge->next = NULL;
         edge->ant = NULL;
     }
-    else
+    else    //Adiciona em uma lista não vazia
     {
         edge->ant = NULL;
         path->startpoint->ant = edge;
@@ -418,6 +435,15 @@ void add_edge_to_path(ADJ_NODE* node, VERTEX* vertex, PATH* path)
     path->lengh++;
 }
 
+/*
+    Desaloca a memória usada no caminho
+
+    params:
+        PATH* path => caminho a ser desalocado
+    
+    return:
+        void
+*/
 void destroy_path(PATH *path)
 {
     EDGE *p = path->startpoint;
@@ -433,29 +459,39 @@ void destroy_path(PATH *path)
     free(path);
 }
 
+/*
+    Copia um caminho
+
+    params:
+        PATH* source => caminho a ser copiado
+        PATH* cloned => caminho copiado
+    
+    return:
+        void
+*/
 void clone_path(PATH* source, PATH* cloned)
 {
-    destroy_path(cloned);
+    destroy_path(cloned);   //Destroi o antigo caminho
     cloned = create_path();
 
     EDGE *p = source->startpoint;
     while(p != NULL)
     {
-        EDGE* edge = (EDGE*)calloc(1, sizeof(EDGE));
+        EDGE* edge = (EDGE*)calloc(1, sizeof(EDGE));    //Vai adicionando no final da lista cada um dos nós do caminho "source"
 
-        edge->nomeUsuarioqueESeguido = p->nomeUsuarioqueESeguido;
+        edge->nomeUsuarioqueESeguido = p->nomeUsuarioqueESeguido;   //Copia uma aresta do caminho de origem
         edge->nomeUsuarioqueSegue = p->nomeUsuarioqueSegue;
         edge->DataInicioQueSegue = p->DataInicioQueSegue;
         edge->DataFimQueSegue = p->DataFimQueSegue;
         edge->grauAmizade = p->grauAmizade;
 
-        if(cloned->startpoint == NULL)
+        if(cloned->startpoint == NULL)  //Adiciona caso a lista esteja vazia
         {
             edge->next = NULL;
             edge->ant = NULL;
             cloned->startpoint = edge;
         }
-        else
+        else    //Lista não vazia
         {
             EDGE* pos = cloned->startpoint;
             while(pos->next !=  NULL)
@@ -474,20 +510,36 @@ void clone_path(PATH* source, PATH* cloned)
     cloned->lengh = source->lengh;
 }
 
+/*
+    Recebe um grafo, um array de caminhos e um array de inteiros adcional, bem como um usuario de onde se parte a busca.
+    Grava no array de caminhos o menor caminho de cada vértice até o vértice inicial.
+
+    params:
+        GRAPH* transposed_graph => grafo transposto onde a procura deve ser iniciada
+        PATH** array_path => array de caminhos
+        char* startpoint => nome do usuário do vértice
+        int* was_visited => inteiros auxiliares na determinação se um vértice foi ou não visitado
+    
+    return:
+        void
+*/
 void dijkstra(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited)
 {
     int pos = search_pos(transposed_graph, startpoint);
-    if(array_path[pos]->lengh == -1)
+    if(array_path[pos]->lengh == -1)    //Caso seja o começo da busca
     {
-        array_path[pos]->lengh = 0;
+        array_path[pos]->lengh = 0;     //Caminho a ele mesmo é zero
         was_visited[pos] = 1;
     }
 
-    ADJ_NODE* p = transposed_graph->vertices_array[pos]->adj_head;
+    ADJ_NODE* p = transposed_graph->vertices_array[pos]->adj_head;  //Pega os vértices adjacentes
     while(p != NULL)
     {
-        int next_vert_pos = search_pos(transposed_graph, p->nomeUsuarioqueESeguido);
-        int still_following = strcmp(p->DataFimQueSegue, "$$$$$$$$$$");
+        int next_vert_pos = search_pos(transposed_graph, p->nomeUsuarioqueESeguido);    //Pega a posição do vértice
+        int still_following = strcmp(p->DataFimQueSegue, "$$$$$$$$$$");     //Flag para acusar que ainda segue (sem data de fim)
+        
+        //Caso o caminho até um vértice adjacente seja menor que o caminho ao vértice atual mais um, substitui o caminho
+        //Testa também se há algum caminho (é igual a menos 1) e se é valido (ainda segue)
         if(still_following == 0 &&(array_path[next_vert_pos]->lengh == -1 || array_path[next_vert_pos]->lengh > array_path[pos]->lengh + 1))
         {
             clone_path(array_path[pos], array_path[next_vert_pos]);
@@ -497,7 +549,7 @@ void dijkstra(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int*
         p = p->next;
     }
 
-    int smallest = 100000000;
+    int smallest = 100000000;   //Pega o vértice não visitado cujo o caminho é o menor
     int smallest_pos = -1;
     for(int i = 0; i < transposed_graph->vertices_n; i++)
     {   
@@ -508,13 +560,22 @@ void dijkstra(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int*
         }
     }
 
-    if(smallest_pos != -1)
+    if(smallest_pos != -1)  //Repete o processo no vértice não visitado de menor caminho
     {
         was_visited[smallest_pos] = 1;
         dijkstra(transposed_graph, array_path, array_path[smallest_pos]->startpoint->nomeUsuarioqueSegue , was_visited);
     }
 }
+/*
+    Printa na tela todos os caminhos de um vetor de caminhos.
 
+    params:
+        PATH** array_path => array de caminhos
+        int size => tamanho do vetor de caminhos
+    
+    return:
+        void
+*/
 void print_paths(PATH** array_path, int size)
 {
     for(int i = 0; i < size; i++)
@@ -557,12 +618,27 @@ void print_paths(PATH** array_path, int size)
     }
 }
 
+/*
+    Recebe um grafo, um array de caminhos e um array de inteiros adcional, bem como um usuario de onde se parte a busca.
+    Grava no array de caminhos o menor caminho de cada vértice até o vértice inicial. Esta versão acha também o menor caminho
+    da partida até ela mesma.
+
+    params:
+        GRAPH* transposed_graph => grafo transposto onde a procura deve ser iniciada
+        PATH** array_path => array de caminhos
+        char* startpoint => nome do usuário do vértice
+        int* was_visited => inteiros auxiliares na determinação se um vértice foi ou não visitado
+    
+    return:
+        void
+*/
+
 void dijkstra_to_itself(GRAPH* transposed_graph, PATH** array_path, char* startpoint, int* was_visited)
 {
     int pos = search_pos(transposed_graph, startpoint);
     if(array_path[pos]->lengh == -1)
     {
-        was_visited[pos] = 1;
+        was_visited[pos] = 1;   // Não seta o caminho até ele mesmo como zero
     }
 
     ADJ_NODE* p = transposed_graph->vertices_array[pos]->adj_head;
@@ -573,7 +649,7 @@ void dijkstra_to_itself(GRAPH* transposed_graph, PATH** array_path, char* startp
         if(still_following == 0 &&(array_path[next_vert_pos]->lengh == -1 || array_path[next_vert_pos]->lengh > array_path[pos]->lengh + 1))
         {
             clone_path(array_path[pos], array_path[next_vert_pos]);
-            if(array_path[next_vert_pos]->lengh == -1)  array_path[next_vert_pos]->lengh = 0;
+            if(array_path[next_vert_pos]->lengh == -1)  array_path[next_vert_pos]->lengh = 0;   //Para compensar, seta como zero caso o copiado tenha tamanho -1
             add_edge_to_path(p ,transposed_graph->vertices_array[pos], array_path[next_vert_pos]);
         }
 

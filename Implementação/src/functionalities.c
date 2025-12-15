@@ -1232,6 +1232,19 @@ void GENERATE_TRANSPOSED(const char* data_filename, const char* index_filename, 
     fclose(follow_file);
 }
 
+/*
+    Printa na tela os caminhos mais curtos de um usuário até um outro usuário passado
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+        char* username => nome da celebridade destino do caminho
+
+    return:
+        void
+*/
+
 void SHORTEST_PATH_TO_USER(const char* data_filename, const char* index_filename, const char* follow_filename, char* username)
 {
     char* data_filepath = get_file_path(data_filename);                 // Tenta abrir todos os arquivos para leitura e encerra o programa com uma mensagem de erro caso estes não existam
@@ -1275,8 +1288,8 @@ void SHORTEST_PATH_TO_USER(const char* data_filename, const char* index_filename
 
     order_graph(transp_graph);                                      // Ordena o grafo transposto
 
-    PATH** array_path = (PATH**)calloc(transp_graph->vertices_n, sizeof(PATH*));
-    int* was_visited = (int*)calloc(transp_graph->vertices_n, 4);
+    PATH** array_path = (PATH**)calloc(transp_graph->vertices_n, sizeof(PATH*));    // Cria um array com um caminho para cada usuário
+    int* was_visited = (int*)calloc(transp_graph->vertices_n, 4);   // Inteiros auxiliares para saber se um vértice foi ou não visitado
 
     for(int i = 0; i < transp_graph->vertices_n; i++)
     {
@@ -1304,6 +1317,20 @@ void SHORTEST_PATH_TO_USER(const char* data_filename, const char* index_filename
     fclose(index_file);
     fclose(follow_file);
 }
+
+/*
+    Printa a distância de um usuário a ele mesmo
+
+    params:
+        const char* data_filename => Nome do arquivo de dados
+        const char* index_filename => Nome do arquivo de indíce
+        const char* follow_filename => Nome do arquivo do tipo 'segue'
+        char* username => nome do usuário
+
+    return:
+        void
+*/
+
 
 void SHORTEST_PATH_TO_ITSELF(const char* data_filename, const char* index_filename, const char* follow_filename, char* username)
 {
@@ -1348,8 +1375,8 @@ void SHORTEST_PATH_TO_ITSELF(const char* data_filename, const char* index_filena
 
     order_graph(transp_graph);                                      // Ordena o grafo transposto
 
-    PATH** array_path = (PATH**)calloc(transp_graph->vertices_n, sizeof(PATH*));
-    int* was_visited = (int*)calloc(transp_graph->vertices_n, 4);
+    PATH** array_path = (PATH**)calloc(transp_graph->vertices_n, sizeof(PATH*));// Cria um array com um caminho para cada usuário
+    int* was_visited = (int*)calloc(transp_graph->vertices_n, 4);   // Inteiros auxiliares para saber se um vértice foi ou não visitado
 
     for(int i = 0; i < transp_graph->vertices_n; i++)
     {
@@ -1359,7 +1386,7 @@ void SHORTEST_PATH_TO_ITSELF(const char* data_filename, const char* index_filena
 
     dijkstra_to_itself(transp_graph, array_path, username, was_visited);
 
-    int pos = search_pos(transp_graph, username);
+    int pos = search_pos(transp_graph, username);   // printa da forma pedida
     if(array_path[pos]->lengh != -1) printf("%d", array_path[pos]->lengh);
     else printf("A FOFOCA NAO RETORNOU");
 
